@@ -1,5 +1,36 @@
 package board
 
+const BoardSquareCount = 120
+
+type Board struct {
+	pieces [BoardSquareCount]uint8
+	// Bit representation of pawn positions.
+	// One for White, Black and Both.
+	pawns [3]uint64
+
+	kings     [2]Square
+	enPassant Square
+	side      Color
+
+	// When this hits 100, the game is drawn (fifty-move rule).
+	fiftyMoveCount uint8
+
+	// Number of half-moves in current search.
+	plyCount uint
+
+	// Number of half-moves in total game so far.
+	historyPlyCount uint8
+
+	// Unique key generated for each position.
+	positionKey uint64
+
+	pieceCounts [13]uint8
+	// Big piece is everything that's not a pawn.
+	bigPieceCounts   [3]uint8
+	majorPieceCounts [3]uint8
+	minorPieceCounts [3]uint8
+}
+
 type Piece uint8
 
 const (

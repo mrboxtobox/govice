@@ -3,8 +3,7 @@ package main
 import "log"
 
 const (
-	Name             = "Achebe"
-	BoardSquareCount = 120
+	Name = "Achebe"
 )
 
 func main() {
