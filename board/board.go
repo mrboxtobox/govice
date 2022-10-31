@@ -1,5 +1,39 @@
 package board
 
+func ResetBoard(board *Board) {
+	var index int8
+	for index = 0; index < BoardSquareCount; index++ {
+		board.pieces[index] = OffBoard
+	}
+
+	for index = 0; index < 64; index++ {
+		board.pieces[SQ120(index)] = NoPiece
+	}
+
+	for index = 0; index < 3; index++ {
+		board.bigPieceCounts[index] = 0
+		board.majorPieceCounts[index] = 0
+		board.minorPieceCounts[index] = 0
+		board.pawns[index] = 0
+	}
+
+	for index = 0; index < 13; index++ {
+		board.pieceCounts[index] = 0
+	}
+
+	board.kings[White] = NoSquare
+	board.kings[Black] = NoSquare
+
+	board.side = Both
+	board.enPassant = NoSquare
+	board.fiftyMoveCount = 0
+
+	board.plyCount = 0
+	board.historyPlyCount = 0
+	board.castlePermissions = 0
+	board.positionKey = 0
+}
+
 const (
 	BoardSquareCount = 120
 	// Maximum number of half-moves.
@@ -7,7 +41,7 @@ const (
 )
 
 type Board struct {
-	pieces [BoardSquareCount]uint8
+	pieces [BoardSquareCount]Piece
 	// Bit representation of pawn positions.
 	// One for White, Black and Both.
 	pawns [3]uint64
@@ -78,6 +112,8 @@ const (
 	BlackRook
 	BlackQueen
 	BlackKing
+
+	OffBoard // TODO: This was under the square.
 )
 
 // Use signed bits since Go doesn't error out on int overflow.
@@ -211,33 +247,20 @@ const (
 	NoSquare // Square is off the board.
 )
 
-var Square120ToSquare64 [BoardSquareCount]int8
-var Square64ToSquare120 [64]int8
-
 func FileRankTo120Square(file File, rank Rank) int8 {
 	return (21 + int8(file)) + int8(rank)*10
 }
 
-func Init() {
-	for index := 0; index < BoardSquareCount; index++ {
-		Square120ToSquare64[index] = 65
-	}
-
-	for index := 0; index < 64; index++ {
-		Square64ToSquare120[index] = 120
-	}
-
-	var sq64 int8
-	for rank := Rank1; rank <= Rank8; rank++ {
-		for file := FileA; file <= FileH; file++ {
-			sq := FileRankTo120Square(file, rank)
-			Square64ToSquare120[sq64] = sq
-			Square120ToSquare64[sq] = sq64
-			sq64++
-		}
-	}
-}
-
 func SQ64(sq120 int8) int8 {
 	return Square120ToSquare64[sq120]
+}
+
+func SQ120(sq64 int8) int8 {
+	return Square64ToSquare120[sq64]
+}
+
+func assert(condition bool) {
+	if !condition {
+		panic(condition)
+	}
 }

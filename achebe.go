@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
+	"time"
 
 	"achebe/board"
 )
@@ -17,29 +19,16 @@ func initialize() {
 
 func main() {
 	log.Print("Hello world.")
+	rand.Seed(time.Now().Unix())
 	board.Init()
 
-	var playBitBoard uint64 = 0
-	fmt.Printf("Start:\n")
-	board.PrintBitBoard(playBitBoard)
+	p1 := rand.Int()
+	p2 := rand.Int()
+	p3 := rand.Int()
+	p4 := rand.Int()
 
-	playBitBoard |= (1 << board.SQ64(int8(board.A1)))
-	playBitBoard |= (1 << board.SQ64(int8(board.H8)))
-	playBitBoard |= (1 << board.SQ64(int8(board.D2)))
-	playBitBoard |= (1 << board.SQ64(int8(board.D3)))
-	playBitBoard |= (1 << board.SQ64(int8(board.D4)))
-	board.PrintBitBoard(playBitBoard)
-
-	fmt.Printf("Count: %v\n", board.CountBits(playBitBoard))
-	index := board.PopBit(&playBitBoard)
-	fmt.Printf("Index: %v\n", index)
-	board.PrintBitBoard(playBitBoard)
-
-	var sq64 int
-	for playBitBoard != 0 {
-		sq64 = int(board.PopBit(&playBitBoard))
-		fmt.Printf("Popped: %d\n", sq64)
-		fmt.Printf("Count: %v\n", board.CountBits(playBitBoard))
-		board.PrintBitBoard(playBitBoard)
-	}
+	fmt.Printf("P1: %X\n", p1)
+	fmt.Printf("P2: %X\n", p2)
+	fmt.Printf("P3: %X\n", p3)
+	fmt.Printf("P4: %X\n", p4)
 }

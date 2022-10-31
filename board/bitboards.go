@@ -18,6 +18,15 @@ var (
 	}
 )
 
+// Important, the value needs to be received.
+func ClearBit(bb *uint64, sq Square) {
+	*bb &= ClearMask[sq]
+}
+
+func SetBit(bb *uint64, sq Square) {
+	*bb |= SetMask[sq]
+}
+
 // Takes the first least significant bit and returns the index and sets it to zero.
 // Different from Vice's implementation.
 // TODO: need to profile this.
