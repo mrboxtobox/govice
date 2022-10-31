@@ -1,6 +1,10 @@
 package board
 
-const BoardSquareCount = 120
+const (
+	BoardSquareCount = 120
+	// Maximum number of half-moves.
+	MaxGameMoves = 2048
+)
 
 type Board struct {
 	pieces [BoardSquareCount]uint8
@@ -16,10 +20,13 @@ type Board struct {
 	fiftyMoveCount uint8
 
 	// Number of half-moves in current search.
-	plyCount uint
+	plyCount uint16
 
 	// Number of half-moves in total game so far.
-	historyPlyCount uint8
+	historyPlyCount uint16
+
+	// Castling permission encoded in 4 bits.
+	castlePermissions uint8
 
 	// Unique key generated for each position.
 	positionKey uint64
@@ -29,7 +36,28 @@ type Board struct {
 	bigPieceCounts   [3]uint8
 	majorPieceCounts [3]uint8
 	minorPieceCounts [3]uint8
+
+	// Indexed by hisPly and used to undo to the last move.
+	undoInfo [MaxGameMoves]UndoInfo
 }
+
+type UndoInfo struct {
+	move              int
+	castlePermissions uint8
+	enPassant         Square
+	fiftyMoveCount    uint8
+	positionKey       uint64
+}
+
+type CastlingRights uint8
+
+const (
+	// Use 4 bits to represent castling permission.
+	WhiteKingCastle CastlingRights = 1 << iota
+	WhiteQueenCastle
+	BlackKingCastle
+	BlackQueenCastle
+)
 
 type Piece uint8
 
@@ -177,3 +205,31 @@ const (
 
 	NoSquare // Square is off the board.
 )
+
+var Square120ToSquare64 [BoardSquareCount]uint8
+var Square64ToSquare120 [64]uint8
+
+func FileRankTo120Square(file File, rank Rank) uint8 {
+	return (21 + uint8(file)) + uint8(rank)*10
+}
+
+func Init() {
+	for index := 0; index < BoardSquareCount; index++ {
+		Square120ToSquare64[index] = 65
+	}
+
+	for index := 0; index < 64; index++ {
+		Square64ToSquare120[index] = 120
+	}
+
+	var sq64 uint8
+	for rank := Rank1; rank <= Rank8; rank++ {
+		for file := FileA; file <= FileH; file++ {
+			sq := FileRankTo120Square(file, rank)
+			Square64ToSquare120[sq64] = sq
+			Square120ToSquare64[sq] = sq64
+			sq64++
+		}
+	}
+
+}
