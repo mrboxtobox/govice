@@ -19,18 +19,13 @@ func main() {
 	log.Print("Hello world.")
 	board.Init()
 
-	for index := 0; index < board.BoardSquareCount; index++ {
-		if index%10 == 0 {
-			fmt.Println()
-		}
-		fmt.Printf("%5d", board.Square120ToSquare64[index])
-	}
-	fmt.Println()
+	var playBitBoard uint64 = 0
+	fmt.Printf("Start:\n")
+	board.PrintBitBoard(playBitBoard)
 
-	for index := 0; index < 64; index++ {
-		if index%8 == 0 {
-			fmt.Println()
-		}
-		fmt.Printf("%5d", board.Square64ToSquare120[index])
-	}
+	playBitBoard |= (1 << board.SQ64(int8(board.D2)))
+	playBitBoard |= (1 << board.SQ64(int8(board.D3)))
+	playBitBoard |= (1 << board.SQ64(int8(board.D4)))
+	fmt.Printf("D2 Added:\n")
+	board.PrintBitBoard(playBitBoard)
 }

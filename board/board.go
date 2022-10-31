@@ -39,6 +39,9 @@ type Board struct {
 
 	// Indexed by hisPly and used to undo to the last move.
 	undoInfo [MaxGameMoves]UndoInfo
+
+	// Piece List (as Map).
+	pieceMap map[Piece][]Square
 }
 
 type UndoInfo struct {
@@ -77,7 +80,9 @@ const (
 	BlackKing
 )
 
-type Rank uint8
+// Use signed bits since Go doesn't error out on int overflow.
+// When checking in for loops, we could wrap around to a larger positive number.
+type Rank int8
 
 const (
 	Rank1 Rank = iota
@@ -91,7 +96,7 @@ const (
 	NoRank
 )
 
-type File uint8
+type File int8
 
 const (
 	FileA File = iota
@@ -114,7 +119,7 @@ const (
 )
 
 // Using VICE's Board Representation. See github.com/peterwankman/vice.
-type Square uint8
+type Square int8
 
 const (
 	A1 Square = iota + 21
@@ -206,11 +211,11 @@ const (
 	NoSquare // Square is off the board.
 )
 
-var Square120ToSquare64 [BoardSquareCount]uint8
-var Square64ToSquare120 [64]uint8
+var Square120ToSquare64 [BoardSquareCount]int8
+var Square64ToSquare120 [64]int8
 
-func FileRankTo120Square(file File, rank Rank) uint8 {
-	return (21 + uint8(file)) + uint8(rank)*10
+func FileRankTo120Square(file File, rank Rank) int8 {
+	return (21 + int8(file)) + int8(rank)*10
 }
 
 func Init() {
@@ -222,7 +227,7 @@ func Init() {
 		Square64ToSquare120[index] = 120
 	}
 
-	var sq64 uint8
+	var sq64 int8
 	for rank := Rank1; rank <= Rank8; rank++ {
 		for file := FileA; file <= FileH; file++ {
 			sq := FileRankTo120Square(file, rank)
@@ -231,5 +236,8 @@ func Init() {
 			sq64++
 		}
 	}
+}
 
+func SQ64(sq120 int8) int8 {
+	return Square120ToSquare64[sq120]
 }
