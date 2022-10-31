@@ -1,5 +1,54 @@
 package board
 
+import "fmt"
+
+func PrintBoard(pos Board) {
+	fmt.Printf("Game Board:\n\n")
+	for rank := Rank8; rank >= Rank1; rank-- {
+		fmt.Printf("%d  ", rank+1)
+		for file := FileA; file <= FileH; file++ {
+			sq := FileRankTo120Square(file, rank)
+			piece := pos.pieces[sq]
+			fmt.Printf("%3c", PieceChar[piece])
+		}
+		fmt.Printf("\n")
+	}
+
+	fmt.Printf("\n   ")
+	for file := FileA; file <= FileH; file++ {
+		fmt.Printf("%3c", 'a'+file)
+	}
+	fmt.Print("\n\n")
+
+	fmt.Printf("Side: %v\n", pos.side)
+	fmt.Printf("En Passant:%d\n", pos.enPassant)
+	var castle string
+	if pos.castlePermissions&uint8(WhiteKingCastle) > 0 {
+		castle = castle + "K"
+	} else {
+		castle = castle + "-"
+	}
+	if pos.castlePermissions&uint8(WhiteQueenCastle) > 0 {
+		castle = castle + "Q"
+	} else {
+		castle = castle + "-"
+	}
+	if pos.castlePermissions&uint8(BlackKingCastle) > 0 {
+		castle = castle + "k"
+	} else {
+		castle = castle + "-"
+	}
+	if pos.castlePermissions&uint8(BlackQueenCastle) > 0 {
+		castle = castle + "q"
+	} else {
+		castle = castle + "-"
+	}
+	fmt.Printf("Castle: %s\n", castle)
+
+	fmt.Printf("KePositionKey: %x\n\n", pos.positionKey)
+
+}
+
 func ResetBoard(board *Board) {
 	var index int8
 	for index = 0; index < BoardSquareCount; index++ {
