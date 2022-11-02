@@ -1,6 +1,8 @@
 package board
 
-import "math/rand"
+import (
+	"math/rand"
+)
 
 var Square120ToSquare64 [BoardSquareCount]int8
 var Square64ToSquare120 [64]int8
@@ -17,6 +19,39 @@ var MajorPiece = [13]bool{false, false, false, false, true, true, true, false, f
 var MinorPiece = [13]bool{false, false, true, true, false, false, false, false, true, true, false, false, false}
 var PieceValue = [13]int{0, 100, 325, 325, 550, 1_000, 50_000, 100, 325, 325, 550, 1_000, 50_000}
 var PieceColor = [13]Color{Both, White, White, White, White, White, Black, Black, Black, Black, Black, Black, Black}
+
+var FilesBoard [BoardSquareCount]int
+var RankBoard [BoardSquareCount]int
+
+func InitFilesRankBoard() {
+	for index := 0; index < BoardSquareCount; index++ {
+		FilesBoard[index] = int(OffBoard)
+		RankBoard[index] = int(OffBoard)
+	}
+
+	for rank := Rank1; rank <= Rank8; rank++ {
+		for file := FileA; file <= FileH; file++ {
+			sq := FileRankTo120Square(file, rank)
+			FilesBoard[sq] = int(file)
+			RankBoard[sq] = int(rank)
+		}
+	}
+
+	// for index := 0; index < BoardSquareCount; index++ {
+	// 	if index%10 == 0 && index != 0 {
+	// 		fmt.Printf("\n")
+	// 	}
+	// 	fmt.Printf("%4d", FilesBoard[index])
+	// }
+
+	// fmt.Printf("\n")
+	// for index := 0; index < BoardSquareCount; index++ {
+	// 	if index%10 == 0 && index != 0 {
+	// 		fmt.Printf("\n")
+	// 	}
+	// 	fmt.Printf("%4d", RankBoard[index])
+	// }
+}
 
 func InitHashKeys() {
 	for index := 0; index < 13; index++ {
@@ -45,6 +80,7 @@ func Init() {
 	InitSquare120ToSquare64()
 	InitBitMasks()
 	InitHashKeys()
+	InitFilesRankBoard()
 }
 
 func InitSquare120ToSquare64() {
