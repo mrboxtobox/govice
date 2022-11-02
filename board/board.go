@@ -39,24 +39,24 @@ func PrintBoard(pos Board) {
 	fmt.Print("\n\n")
 
 	fmt.Printf("Side: %v\n", pos.side)
-	fmt.Printf("En Passant:%d\n", pos.enPassant)
+	fmt.Printf("En Passant:%d\n", pos.enPas)
 	var castle string
-	if pos.castlePermissions&uint8(WhiteKingCastle) > 0 {
+	if pos.castlePerm&uint8(WKCA) > 0 {
 		castle = castle + "K"
 	} else {
 		castle = castle + "-"
 	}
-	if pos.castlePermissions&uint8(WhiteQueenCastle) > 0 {
+	if pos.castlePerm&uint8(WQCA) > 0 {
 		castle = castle + "Q"
 	} else {
 		castle = castle + "-"
 	}
-	if pos.castlePermissions&uint8(BlackKingCastle) > 0 {
+	if pos.castlePerm&uint8(BKCA) > 0 {
 		castle = castle + "k"
 	} else {
 		castle = castle + "-"
 	}
-	if pos.castlePermissions&uint8(BlackQueenCastle) > 0 {
+	if pos.castlePerm&uint8(BQCA) > 0 {
 		castle = castle + "q"
 	} else {
 		castle = castle + "-"
@@ -75,13 +75,13 @@ func CheckBoard(pos *Board) {
 	var tmpMaterial [2]int
 
 	var tmpPawns [3]uint64
-	tmpPawns[White] = pos.Pawns[White]
-	tmpPawns[Black] = pos.Pawns[Black]
+	tmpPawns[WHITE] = pos.Pawns[WHITE]
+	tmpPawns[BLACK] = pos.Pawns[BLACK]
 	tmpPawns[Both] = pos.Pawns[Both]
 
 	// Check piece list.
 	for piece := WhitePawn; piece <= BlackKing; piece++ {
-		for pieceNum := 0; pieceNum < int(pos.pieceCounts[piece]); pieceNum++ {
+		for pieceNum := 0; pieceNum < int(pos.pceNum[piece]); pieceNum++ {
 			sq120 := pos.pieceList[piece][pieceNum]
 			assert(pos.pieces[sq120] == piece)
 		}
@@ -111,26 +111,26 @@ func CheckBoard(pos *Board) {
 
 	for piece := uint8(WhitePawn); piece <= uint8(BlackKing); piece++ {
 		// fmt.Println(tmpPieceCount[piece], int(pos.pieceCounts[piece]))
-		assert(tmpPieceCount[piece] == int(pos.pieceCounts[piece]))
+		assert(tmpPieceCount[piece] == int(pos.pceNum[piece]))
 	}
 
 	// Check bit boards.
-	pcount := CountBits(tmpPawns[White])
-	assert(pcount == pos.pieceCounts[WhitePawn])
-	pcount = CountBits(tmpPawns[Black])
-	assert(pcount == pos.pieceCounts[BlackPawn])
+	pcount := CountBits(tmpPawns[WHITE])
+	assert(pcount == pos.pceNum[WhitePawn])
+	pcount = CountBits(tmpPawns[BLACK])
+	assert(pcount == pos.pceNum[BlackPawn])
 	pcount = CountBits(tmpPawns[Both])
-	assert(pcount == pos.pieceCounts[WhitePawn]+pos.pieceCounts[BlackPawn])
+	assert(pcount == pos.pceNum[WhitePawn]+pos.pceNum[BlackPawn])
 
 	// Check bitboard squares.
-	for tmpPawns[White] != 0 {
-		sq64 := PopBit(&tmpPawns[White])
+	for tmpPawns[WHITE] != 0 {
+		sq64 := PopBit(&tmpPawns[WHITE])
 		assert(pos.pieces[SQ120(sq64)] == WhitePawn)
 
 	}
 
-	for tmpPawns[Black] != 0 {
-		sq64 := PopBit(&tmpPawns[Black])
+	for tmpPawns[BLACK] != 0 {
+		sq64 := PopBit(&tmpPawns[BLACK])
 		assert(pos.pieces[SQ120(sq64)] == BlackPawn)
 	}
 
@@ -139,32 +139,36 @@ func CheckBoard(pos *Board) {
 		assert(pos.pieces[SQ120(sq64)] == WhitePawn || pos.pieces[SQ120(sq64)] == BlackPawn)
 	}
 
-	assert(tmpMaterial[White] == pos.material[White] && tmpMaterial[Black] == pos.material[Black])
-	assert(tmpMinorPiece[White] == pos.minorPieceCounts[White] && tmpMinorPiece[Black] == pos.minorPieceCounts[Black])
-	assert(tmpMajorPiece[White] == pos.majorPieceCounts[White] && tmpMajorPiece[Black] == pos.majorPieceCounts[Black])
-	assert(tmpBigPiece[White] == pos.bigPieceCounts[White] && tmpBigPiece[Black] == pos.bigPieceCounts[Black])
+	assert(tmpMaterial[WHITE] == pos.material[WHITE] && tmpMaterial[BLACK] == pos.material[BLACK])
+	assert(tmpMinorPiece[WHITE] == pos.minorPieceCounts[WHITE] && tmpMinorPiece[BLACK] == pos.minorPieceCounts[BLACK])
+	assert(tmpMajorPiece[WHITE] == pos.majorPieceCounts[WHITE] && tmpMajorPiece[BLACK] == pos.majorPieceCounts[BLACK])
+	assert(tmpBigPiece[WHITE] == pos.bigPieceCounts[WHITE] && tmpBigPiece[BLACK] == pos.bigPieceCounts[BLACK])
 
-	assert(pos.side == White || pos.side == Black)
+	assert(pos.side == WHITE || pos.side == BLACK)
 	assert(GeneratePositionKey(*pos) == pos.positionKey)
 
-	assert(pos.enPassant == NoSquare ||
-		(Rank(RankBoard[pos.enPassant]) == Rank6 && pos.side == White) ||
-		(Rank(RankBoard[pos.enPassant]) == Rank3 && pos.side == Black))
+	assert(pos.enPas == NO_SQ ||
+		(Rank(RanksBoard[pos.enPas]) == Rank6 && pos.side == WHITE) ||
+		(Rank(RanksBoard[pos.enPas]) == Rank3 && pos.side == BLACK))
 
 	// fmt.Println(pos.pieces, pos.pieces[pos.kings[White]])
-	assert(pos.pieces[pos.kings[White]] == WhiteKing)
-	assert(pos.pieces[pos.kings[Black]] == BlackKing)
+	assert(pos.pieces[pos.kings[WHITE]] == WhiteKing)
+	assert(pos.pieces[pos.kings[BLACK]] == BlackKing)
 
+}
+
+func SQOFFBOARD(sq int) bool {
+	return FilesBrd[sq] == int(OFFBOARD)
 }
 
 func ResetBoard(board *Board) {
 	var index int8
 	for index = 0; index < BoardSquareCount; index++ {
-		board.pieces[index] = OffBoard
+		board.pieces[index] = OFFBOARD
 	}
 
 	for index = 0; index < 64; index++ {
-		board.pieces[SQ120(index)] = NoPiece
+		board.pieces[SQ120(index)] = EMPTY
 	}
 
 	for index = 0; index < 2; index++ {
@@ -179,19 +183,19 @@ func ResetBoard(board *Board) {
 	}
 
 	for index = 0; index < 13; index++ {
-		board.pieceCounts[index] = 0
+		board.pceNum[index] = 0
 	}
 
-	board.kings[White] = NoSquare
-	board.kings[Black] = NoSquare
+	board.kings[WHITE] = NO_SQ
+	board.kings[BLACK] = NO_SQ
 
 	board.side = Both
-	board.enPassant = NoSquare
+	board.enPas = NO_SQ
 	board.fiftyMoveCount = 0
 
 	board.plyCount = 0
 	board.historyPlyCount = 0
-	board.castlePermissions = 0
+	board.castlePerm = 0
 	board.positionKey = 0
 }
 
@@ -199,6 +203,8 @@ const (
 	BoardSquareCount = 120
 	// Maximum number of half-moves.
 	MaxGameMoves = 2048
+
+	MaxPositionMoves = 256
 )
 
 type Board struct {
@@ -207,9 +213,9 @@ type Board struct {
 	// One for White, Black and Both.
 	Pawns [3]uint64
 
-	kings     [2]Square
-	enPassant Square
-	side      Color
+	kings [2]Square
+	enPas Square
+	side  Color
 
 	// When this hits 100, the game is drawn (fifty-move rule).
 	fiftyMoveCount uint8
@@ -221,12 +227,12 @@ type Board struct {
 	historyPlyCount uint16
 
 	// Castling permission encoded in 4 bits.
-	castlePermissions uint8
+	castlePerm uint8
 
 	// Unique key generated for each position.
 	positionKey uint64
 
-	pieceCounts [13]int8
+	pceNum [13]int8
 	// Big piece is everything that's not a pawn.
 	bigPieceCounts   [2]uint8
 	majorPieceCounts [2]uint8
@@ -253,16 +259,16 @@ type CastlingRights uint8
 
 const (
 	// Use 4 bits to represent castling permission.
-	WhiteKingCastle CastlingRights = 1 << iota
-	WhiteQueenCastle
-	BlackKingCastle
-	BlackQueenCastle
+	WKCA CastlingRights = 1 << iota
+	WQCA
+	BKCA
+	BQCA
 )
 
 type Piece uint8
 
 const (
-	NoPiece Piece = iota
+	EMPTY Piece = iota
 	WhitePawn
 	WhiteKnight
 	WhiteBishop
@@ -276,7 +282,7 @@ const (
 	BlackQueen
 	BlackKing
 
-	OffBoard // TODO: This was under the square.
+	OFFBOARD // TODO: This was under the square.
 )
 
 // Use signed bits since Go doesn't error out on int overflow.
@@ -312,8 +318,8 @@ const (
 type Color uint8
 
 const (
-	White Color = iota
-	Black
+	WHITE Color = iota
+	BLACK
 	Both
 )
 
@@ -407,7 +413,7 @@ const (
 	G8
 	H8
 
-	NoSquare // Square is off the board.
+	NO_SQ // Square is off the board.
 )
 
 func FileRankTo120Square(file File, rank Rank) int8 {

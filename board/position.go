@@ -29,7 +29,7 @@ func UpdateListsMaterial(pos *Board) {
 	for index := 0; index < BoardSquareCount; index++ {
 		piece := pos.pieces[index]
 		// fmt.Println(pos.pieces, index)
-		if piece != OffBoard && piece != NoPiece {
+		if piece != OFFBOARD && piece != EMPTY {
 			color := PieceColor[piece]
 			if BigPiece[piece] {
 				pos.bigPieceCounts[color]++
@@ -45,23 +45,23 @@ func UpdateListsMaterial(pos *Board) {
 			pos.material[color] += PieceValue[piece]
 
 			// TODO: We update the piece list and increase the count. Ch 18.
-			pos.pieceList[piece][pos.pieceCounts[piece]] = index
-			pos.pieceCounts[piece] += 1
+			pos.pieceList[piece][pos.pceNum[piece]] = index
+			pos.pceNum[piece] += 1
 
 			if piece == WhiteKing {
-				pos.kings[White] = Square(index)
+				pos.kings[WHITE] = Square(index)
 			}
 			if piece == BlackKing {
-				pos.kings[Black] = Square(index)
+				pos.kings[BLACK] = Square(index)
 			}
 			sq := int8(index)
 
 			// TODO: Need to verify this pointer is correctly passed.
 			if piece == WhitePawn {
-				SetBit(&pos.Pawns[White], Square(SQ64(sq)))
+				SetBit(&pos.Pawns[WHITE], Square(SQ64(sq)))
 				SetBit(&pos.Pawns[Both], Square(SQ64(sq)))
 			} else if piece == BlackPawn {
-				SetBit(&pos.Pawns[Black], Square(SQ64(sq)))
+				SetBit(&pos.Pawns[BLACK], Square(SQ64(sq)))
 				SetBit(&pos.Pawns[Both], Square(SQ64(sq)))
 			}
 
@@ -74,7 +74,7 @@ func ParseFEN(pos *Board, fen string) {
 
 	rank := Rank8
 	file := FileA
-	piece := NoPiece
+	piece := EMPTY
 	var count int
 	var curr int
 
@@ -84,7 +84,7 @@ func ParseFEN(pos *Board, fen string) {
 		case "p", "b", "n", "r", "k", "q", "P", "B", "N", "R", "K", "Q":
 			piece = strToPiece[string(fen[curr])]
 		case "1", "2", "3", "4", "5", "6", "7", "8":
-			piece = NoPiece
+			piece = EMPTY
 			count = int(fen[curr] - '0')
 		case "/", " ":
 			rank--
@@ -99,7 +99,7 @@ func ParseFEN(pos *Board, fen string) {
 			// fmt.Println(count, rank, file)
 			sq64 := int8(rank)*8 + int8(file)
 			sq120 := SQ120(sq64)
-			if piece != NoPiece {
+			if piece != EMPTY {
 				pos.pieces[sq120] = piece
 			}
 			file++
@@ -109,9 +109,9 @@ func ParseFEN(pos *Board, fen string) {
 
 	assert(fen[curr] == 'w' || fen[curr] == 'b')
 	if fen[curr] == 'w' {
-		pos.side = White
+		pos.side = WHITE
 	} else {
-		pos.side = Black
+		pos.side = BLACK
 	}
 
 	curr += 2
@@ -125,24 +125,24 @@ func ParseFEN(pos *Board, fen string) {
 
 		switch fen[j] {
 		case 'K':
-			pos.castlePermissions |= uint8(WhiteKingCastle)
+			pos.castlePerm |= uint8(WKCA)
 		case 'Q':
-			pos.castlePermissions |= uint8(WhiteQueenCastle)
+			pos.castlePerm |= uint8(WQCA)
 		case 'k':
-			pos.castlePermissions |= uint8(BlackKingCastle)
+			pos.castlePerm |= uint8(BKCA)
 		case 'q':
-			pos.castlePermissions |= uint8(BlackQueenCastle)
+			pos.castlePerm |= uint8(BQCA)
 		}
 	}
 
 	// En passant.
-	assert(pos.castlePermissions >= 0 && pos.castlePermissions <= 15)
+	assert(pos.castlePerm >= 0 && pos.castlePerm <= 15)
 
 	if fen[curr] != '-' {
 		file := File(int(fen[curr] - 'a'))
 		rank := Rank(int(fen[curr+1] - '1'))
 
-		pos.enPassant = Square(FileRankTo120Square(file, rank))
+		pos.enPas = Square(FileRankTo120Square(file, rank))
 	}
 
 	pos.positionKey = GeneratePositionKey(*pos)

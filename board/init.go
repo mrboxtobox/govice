@@ -18,22 +18,22 @@ var BigPiece = [13]bool{false, false, true, true, true, true, true, false, true,
 var MajorPiece = [13]bool{false, false, false, false, true, true, true, false, false, false, true, true, true}
 var MinorPiece = [13]bool{false, false, true, true, false, false, false, false, true, true, false, false, false}
 var PieceValue = [13]int{0, 100, 325, 325, 550, 1_000, 50_000, 100, 325, 325, 550, 1_000, 50_000}
-var PieceColor = [13]Color{Both, White, White, White, White, White, Black, Black, Black, Black, Black, Black, Black}
+var PieceColor = [13]Color{Both, WHITE, WHITE, WHITE, WHITE, WHITE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK}
 
-var FilesBoard [BoardSquareCount]int
-var RankBoard [BoardSquareCount]int
+var FilesBrd [BoardSquareCount]int
+var RanksBoard [BoardSquareCount]int
 
 func InitFilesRankBoard() {
 	for index := 0; index < BoardSquareCount; index++ {
-		FilesBoard[index] = int(OffBoard)
-		RankBoard[index] = int(OffBoard)
+		FilesBrd[index] = int(OFFBOARD)
+		RanksBoard[index] = int(OFFBOARD)
 	}
 
 	for rank := Rank1; rank <= Rank8; rank++ {
 		for file := FileA; file <= FileH; file++ {
 			sq := FileRankTo120Square(file, rank)
-			FilesBoard[sq] = int(file)
-			RankBoard[sq] = int(rank)
+			FilesBrd[sq] = int(file)
+			RanksBoard[sq] = int(rank)
 		}
 	}
 

@@ -6,7 +6,7 @@ func GeneratePositionKey(board Board) uint64 {
 	// Pieces.
 	for sq := 0; sq < BoardSquareCount; sq++ {
 		piece := board.pieces[sq]
-		if piece != NoPiece && piece != OffBoard {
+		if piece != EMPTY && piece != OFFBOARD {
 			// fmt.Println(piece, WhitePawn, BlackKing)
 			assert(piece >= WhitePawn && piece <= BlackKing)
 			key ^= PieceKeys[piece][sq]
@@ -14,20 +14,20 @@ func GeneratePositionKey(board Board) uint64 {
 	}
 
 	// Side.
-	if board.side == White {
+	if board.side == WHITE {
 		key ^= SideKey
 	}
 
 	// En Passant
-	if board.enPassant != NoSquare {
+	if board.enPas != NO_SQ {
 		// fmt.Println(board.enPassant, 0, BoardSquareCount)
-		assert(board.enPassant >= 0 && board.enPassant <= BoardSquareCount)
-		key ^= PieceKeys[NoPiece][board.enPassant]
+		assert(board.enPas >= 0 && board.enPas <= BoardSquareCount)
+		key ^= PieceKeys[EMPTY][board.enPas]
 	}
 
 	// Castling.
-	assert(board.castlePermissions >= 0 && board.castlePermissions <= 15)
-	key ^= CastleKeys[board.castlePermissions]
+	assert(board.castlePerm >= 0 && board.castlePerm <= 15)
+	key ^= CastleKeys[board.castlePerm]
 
 	return key
 }
