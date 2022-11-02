@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"time"
@@ -32,6 +33,18 @@ func main() {
 	board.PrintBoard(b)
 
 	// board.CheckBoard(&b)
-	board.ShowSqAtSide(board.White, &b)
-	board.ShowSqAtSide(board.Black, &b)
+
+	from := 6
+	to := 12
+	cap := board.WhiteRook
+	promo := board.BlackRook
+	move := (from) | (to << 7) | (int(cap) << 14) | (int(promo) << 20)
+
+	fmt.Printf("\ndex: %d\nhex %x\n", move, move)
+	fmt.Printf("\bin:%b\n", move)
+
+	fmt.Printf("from:%d, to:%d, cap: %d, prom: %d\n", board.FromSQ(move), board.ToSQ(move), board.Captured(move), board.Promoted(move))
+
+	move |= board.MFlagPawnStart
+	fmt.Printf("Is pawn start: %v ", move&board.MFlagPawnStart)
 }
