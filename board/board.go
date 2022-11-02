@@ -59,10 +59,14 @@ func ResetBoard(board *Board) {
 		board.pieces[SQ120(index)] = NoPiece
 	}
 
-	for index = 0; index < 3; index++ {
+	for index = 0; index < 2; index++ {
 		board.bigPieceCounts[index] = 0
 		board.majorPieceCounts[index] = 0
 		board.minorPieceCounts[index] = 0
+		board.material[index] = 0
+	}
+
+	for index := 0; index < 2; index++ {
 		board.pawns[index] = 0
 	}
 
@@ -116,15 +120,17 @@ type Board struct {
 
 	pieceCounts [13]uint8
 	// Big piece is everything that's not a pawn.
-	bigPieceCounts   [3]uint8
-	majorPieceCounts [3]uint8
-	minorPieceCounts [3]uint8
+	bigPieceCounts   [2]uint8
+	majorPieceCounts [2]uint8
+	minorPieceCounts [2]uint8
+	// Material scores for Black and White
+	material [2]int
 
 	// Indexed by hisPly and used to undo to the last move.
 	undoInfo [MaxGameMoves]UndoInfo
 
 	// Piece List (as Map).
-	pieceMap map[Piece][]Square
+	pieceList [13][10]int
 }
 
 type UndoInfo struct {

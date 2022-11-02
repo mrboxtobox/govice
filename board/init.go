@@ -12,6 +12,12 @@ var PieceKeys [13][BoardSquareCount]uint64
 var SideKey uint64
 var CastleKeys [16]uint64
 
+var BigPiece = [13]bool{false, false, true, true, true, true, true, false, true, true, true, true, true}
+var MajorPiece = [13]bool{false, false, false, false, true, true, true, false, false, false, true, true, true}
+var MinorPiece = [13]bool{false, false, true, true, false, false, false, false, true, true, false, false, false}
+var PieceValue = [13]int{0, 100, 325, 325, 550, 1_000, 50_000, 100, 325, 325, 550, 1_000, 50_000}
+var PieceColor = [13]Color{Both, White, White, White, White, White, Black, Black, Black, Black, Black, Black, Black}
+
 func InitHashKeys() {
 	for index := 0; index < 13; index++ {
 		for index2 := 0; index2 < BoardSquareCount; index2++ {
