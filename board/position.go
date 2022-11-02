@@ -28,18 +28,20 @@ var (
 func UpdateListsMaterial(pos *Board) {
 	for index := 0; index < BoardSquareCount; index++ {
 		piece := pos.pieces[index]
+		// fmt.Println(pos.pieces, index)
 		if piece != OffBoard && piece != NoPiece {
 			color := PieceColor[piece]
-			if BigPiece[index] {
-				pos.bigPieceCounts[piece]++
+			if BigPiece[piece] {
+				pos.bigPieceCounts[color]++
 			}
-			if MajorPiece[index] {
-				pos.majorPieceCounts[piece]++
+			if MajorPiece[piece] {
+				pos.majorPieceCounts[color]++
 			}
-			if MinorPiece[index] {
-				pos.minorPieceCounts[piece]++
+			if MinorPiece[piece] {
+				pos.minorPieceCounts[color]++
 			}
 
+			// TODO: What happens when color is BOTH.
 			pos.material[color] += PieceValue[piece]
 
 			// TODO: We update the piece list and increase the count. Ch 18.
@@ -49,12 +51,22 @@ func UpdateListsMaterial(pos *Board) {
 			if piece == WhiteKing {
 				pos.kings[White] = Square(index)
 			}
-			if piece == BlackBishop {
+			if piece == BlackKing {
 				pos.kings[Black] = Square(index)
 			}
+			sq := int8(index)
+
+			// TODO: Need to verify this pointer is correctly passed.
+			if piece == WhitePawn {
+				SetBit(&pos.Pawns[White], Square(SQ64(sq)))
+				SetBit(&pos.Pawns[Both], Square(SQ64(sq)))
+			} else if piece == BlackPawn {
+				SetBit(&pos.Pawns[Black], Square(SQ64(sq)))
+				SetBit(&pos.Pawns[Both], Square(SQ64(sq)))
+			}
+
 		}
 	}
-
 }
 
 func ParseFEN(pos *Board, fen string) {
@@ -134,4 +146,6 @@ func ParseFEN(pos *Board, fen string) {
 	}
 
 	pos.positionKey = GeneratePositionKey(*pos)
+
+	UpdateListsMaterial(pos)
 }

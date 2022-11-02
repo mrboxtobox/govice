@@ -1,6 +1,24 @@
 package board
 
-import "fmt"
+import (
+	"fmt"
+)
+
+func ShowSqAtSide(side Color, pos *Board) {
+	for rank := Rank8; rank >= Rank1; rank-- {
+		fmt.Printf("%d  ", rank+1)
+		for file := FileA; file <= FileH; file++ {
+			sq := FileRankTo120Square(file, rank)
+			if SqAttacked(*pos, Square(sq), side) {
+				fmt.Printf("X")
+			} else {
+				fmt.Printf("-")
+			}
+		}
+		fmt.Printf("\n")
+	}
+	fmt.Printf("\n")
+}
 
 func PrintBoard(pos Board) {
 	fmt.Printf("Game Board:\n\n")
@@ -49,6 +67,96 @@ func PrintBoard(pos Board) {
 
 }
 
+func CheckBoard(pos *Board) {
+	var tmpPieceCount [13]int
+	var tmpBigPiece [2]uint8
+	var tmpMajorPiece [2]uint8
+	var tmpMinorPiece [2]uint8
+	var tmpMaterial [2]int
+
+	var tmpPawns [3]uint64
+	tmpPawns[White] = pos.Pawns[White]
+	tmpPawns[Black] = pos.Pawns[Black]
+	tmpPawns[Both] = pos.Pawns[Both]
+
+	// Check piece list.
+	for piece := WhitePawn; piece <= BlackKing; piece++ {
+		for pieceNum := 0; pieceNum < int(pos.pieceCounts[piece]); pieceNum++ {
+			sq120 := pos.pieceList[piece][pieceNum]
+			assert(pos.pieces[sq120] == piece)
+		}
+	}
+
+	// Piece count and counters
+	for sq64 := int8(0); sq64 < 64; sq64++ {
+		sq120 := SQ120(sq64)
+		piece := pos.pieces[sq120]
+		tmpPieceCount[piece]++
+		color := PieceColor[piece]
+		if BigPiece[piece] {
+			tmpBigPiece[color]++
+		}
+		if MinorPiece[piece] {
+			tmpMinorPiece[color]++
+		}
+		if MajorPiece[piece] {
+			tmpMajorPiece[color]++
+		}
+
+		// fmt.Println(color, piece, sq64)
+		if color != Both {
+			tmpMaterial[color] += PieceValue[piece]
+		}
+	}
+
+	for piece := uint8(WhitePawn); piece <= uint8(BlackKing); piece++ {
+		// fmt.Println(tmpPieceCount[piece], int(pos.pieceCounts[piece]))
+		assert(tmpPieceCount[piece] == int(pos.pieceCounts[piece]))
+	}
+
+	// Check bit boards.
+	pcount := CountBits(tmpPawns[White])
+	assert(pcount == pos.pieceCounts[WhitePawn])
+	pcount = CountBits(tmpPawns[Black])
+	assert(pcount == pos.pieceCounts[BlackPawn])
+	pcount = CountBits(tmpPawns[Both])
+	assert(pcount == pos.pieceCounts[WhitePawn]+pos.pieceCounts[BlackPawn])
+
+	// Check bitboard squares.
+	for tmpPawns[White] != 0 {
+		sq64 := PopBit(&tmpPawns[White])
+		assert(pos.pieces[SQ120(sq64)] == WhitePawn)
+
+	}
+
+	for tmpPawns[Black] != 0 {
+		sq64 := PopBit(&tmpPawns[Black])
+		assert(pos.pieces[SQ120(sq64)] == BlackPawn)
+	}
+
+	for tmpPawns[Both] != 0 {
+		sq64 := PopBit(&tmpPawns[Both])
+		assert(pos.pieces[SQ120(sq64)] == WhitePawn || pos.pieces[SQ120(sq64)] == BlackPawn)
+	}
+
+	assert(tmpMaterial[White] == pos.material[White] && tmpMaterial[Black] == pos.material[Black])
+	assert(tmpMinorPiece[White] == pos.minorPieceCounts[White] && tmpMinorPiece[Black] == pos.minorPieceCounts[Black])
+	assert(tmpMajorPiece[White] == pos.majorPieceCounts[White] && tmpMajorPiece[Black] == pos.majorPieceCounts[Black])
+	assert(tmpBigPiece[White] == pos.bigPieceCounts[White] && tmpBigPiece[Black] == pos.bigPieceCounts[Black])
+
+	assert(pos.side == White || pos.side == Black)
+	assert(GeneratePositionKey(*pos) == pos.positionKey)
+
+	assert(pos.enPassant == NoSquare ||
+		(Rank(RankBoard[pos.enPassant]) == Rank6 && pos.side == White) ||
+		(Rank(RankBoard[pos.enPassant]) == Rank3 && pos.side == Black))
+
+	// fmt.Println(pos.pieces, pos.pieces[pos.kings[White]])
+	assert(pos.pieces[pos.kings[White]] == WhiteKing)
+	assert(pos.pieces[pos.kings[Black]] == BlackKing)
+
+}
+
 func ResetBoard(board *Board) {
 	var index int8
 	for index = 0; index < BoardSquareCount; index++ {
@@ -67,7 +175,7 @@ func ResetBoard(board *Board) {
 	}
 
 	for index := 0; index < 2; index++ {
-		board.pawns[index] = 0
+		board.Pawns[index] = 0
 	}
 
 	for index = 0; index < 13; index++ {
@@ -97,7 +205,7 @@ type Board struct {
 	pieces [BoardSquareCount]Piece
 	// Bit representation of pawn positions.
 	// One for White, Black and Both.
-	pawns [3]uint64
+	Pawns [3]uint64
 
 	kings     [2]Square
 	enPassant Square
@@ -118,7 +226,7 @@ type Board struct {
 	// Unique key generated for each position.
 	positionKey uint64
 
-	pieceCounts [13]uint8
+	pieceCounts [13]int8
 	// Big piece is everything that's not a pawn.
 	bigPieceCounts   [2]uint8
 	majorPieceCounts [2]uint8
@@ -136,7 +244,7 @@ type Board struct {
 type UndoInfo struct {
 	move              int
 	castlePermissions uint8
-	enPassant         Square
+	enPassantsant     Square
 	fiftyMoveCount    uint8
 	positionKey       uint64
 }
