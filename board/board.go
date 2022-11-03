@@ -152,8 +152,8 @@ func CheckBoard(pos *Board) {
 		(Rank(RanksBoard[pos.enPas]) == Rank3 && pos.Side == BLACK))
 
 	// fmt.Println(pos.pieces, pos.pieces[pos.kings[White]])
-	assert(pos.pieces[pos.kings[WHITE]] == WhiteKing)
-	assert(pos.pieces[pos.kings[BLACK]] == BlackKing)
+	assert(pos.pieces[pos.KingSq[WHITE]] == WhiteKing)
+	assert(pos.pieces[pos.KingSq[BLACK]] == BlackKing)
 
 }
 
@@ -176,6 +176,10 @@ func ResetBoard(board *Board) {
 		board.majorPieceCounts[index] = 0
 		board.minorPieceCounts[index] = 0
 		board.material[index] = 0
+	}
+
+	// Pawns indexed to 3 for bitboards.
+	for index := 0; index < 3; index++ {
 		board.Pawns[index] = 0
 	}
 
@@ -183,15 +187,15 @@ func ResetBoard(board *Board) {
 		board.pceNum[index] = 0
 	}
 
-	board.kings[WHITE] = NO_SQ
-	board.kings[BLACK] = NO_SQ
+	board.KingSq[WHITE] = NO_SQ
+	board.KingSq[BLACK] = NO_SQ
 
 	board.Side = Both
 	board.enPas = NO_SQ
-	board.fiftyMoveCount = 0
+	board.fiftyMove = 0
 
-	board.plyCount = 0
-	board.historyPlyCount = 0
+	board.ply = 0
+	board.hisPly = 0
 	board.castlePerm = 0
 	board.positionKey = 0
 }
@@ -210,18 +214,18 @@ type Board struct {
 	// One for White, Black and Both.
 	Pawns [3]uint64
 
-	kings [2]Square
-	enPas Square
-	Side  Color
+	KingSq [2]Square
+	enPas  Square
+	Side   Color
 
 	// When this hits 100, the game is drawn (fifty-move rule).
-	fiftyMoveCount uint8
+	fiftyMove uint8
 
 	// Number of half-moves in current search.
-	plyCount uint16
+	ply uint16
 
 	// Number of half-moves in total game so far.
-	historyPlyCount uint16
+	hisPly uint16
 
 	// Castling permission encoded in 4 bits.
 	castlePerm uint8
@@ -238,18 +242,18 @@ type Board struct {
 	material [2]int
 
 	// Indexed by hisPly and used to undo to the last move.
-	undoInfo [MaxGameMoves]UndoInfo
+	history [MaxGameMoves]UndoInfo
 
 	// Piece List (as Map).
 	pieceList [13][10]int
 }
 
 type UndoInfo struct {
-	move              int
-	castlePermissions uint8
-	enPassantsant     Square
-	fiftyMoveCount    uint8
-	positionKey       uint64
+	move        int
+	castlePerm  uint8
+	enPas       Square
+	fiftyMoves  uint8
+	positionKey uint64
 }
 
 type CastlingRights uint8

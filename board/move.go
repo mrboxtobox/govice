@@ -49,10 +49,10 @@ func Promoted(m int) int {
 }
 
 const (
-	MFLAGEP     = 0x40000
-	MFLAGPS     = 0x80000
-	MFlagCastle = 0x1000000
+	MFLAGEP  = 0x40000
+	MFLAGPS  = 0x80000
+	MFLAGCAP = 0x1000000
 
-	MFLAGCA    = 0x7c000
-	MFlagPromo = 0xF00000
+	MFLAGCA   = 0x7c000
+	MFLAGPROM = 0xF00000
 )

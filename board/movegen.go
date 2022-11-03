@@ -1,5 +1,7 @@
 package board
 
+import "fmt"
+
 var LoopSlidePce = [8]Piece{WhiteBishop, WhiteRook, WhiteQueen, 0, BlackBishop, BlackRook, BlackQueen, 0}
 var LoopSlideIndex = [2]int{0, 4}
 var LoopNonSlidePce = [6]Piece{WhiteKnight, WhiteKing, 0, BlackKnight, BlackKing, 0}
@@ -47,6 +49,7 @@ func AddEnPassantMove(pos *Board, move int, list *MoveList) {
 	list.Count++
 }
 
+// Make functions performance intensive.
 func AddWhitePawnCapMove(pos *Board, from, to int, cap Piece, list *MoveList) {
 	assert(PieceValidEmpty(cap))
 	assert(SqOnBoard(from))
@@ -140,21 +143,24 @@ func GenerateAllMoves(pos *Board, list *MoveList) {
 			}
 		}
 
-		// if (pos.castlePerm & uint8(WKCA)) != 0 {
-		// 	if pos.pieces[F1] == EMPTY && pos.pieces[G1] == EMPTY {
-		// 		if !SqAttacked(*pos, E1, BLACK) && !SqAttacked(*pos, F1, BLACK) {
-		// 			AddQuietMove(pos, PackMove(int(E1), int(G1), EMPTY, EMPTY, MFLAGCA), list)
-		// 		}
-		// 	}
-		// }
+		if (pos.castlePerm & uint8(WKCA)) != 0 {
+			if pos.pieces[F1] == EMPTY && pos.pieces[G1] == EMPTY {
+				// We will check if King ends up in check during MakeMove.
+				if !SqAttacked(*pos, E1, BLACK) && !SqAttacked(*pos, F1, BLACK) {
+					// fmt.Printf("WKCA")
+					AddQuietMove(pos, PackMove(int(E1), int(G1), EMPTY, EMPTY, MFLAGCA), list)
+				}
+			}
+		}
 
-		// if (pos.castlePerm & uint8(WQCA)) != 0 {
-		// 	if pos.pieces[D1] == EMPTY && pos.pieces[C1] == EMPTY && pos.pieces[B1] == EMPTY {
-		// 		if !SqAttacked(*pos, E1, BLACK) && !SqAttacked(*pos, D1, BLACK) {
-		// 			AddQuietMove(pos, PackMove(int(E1), int(C1), EMPTY, EMPTY, MFLAGCA), list)
-		// 		}
-		// 	}
-		// }
+		if (pos.castlePerm & uint8(WQCA)) != 0 {
+			if pos.pieces[D1] == EMPTY && pos.pieces[C1] == EMPTY && pos.pieces[B1] == EMPTY {
+				if !SqAttacked(*pos, E1, BLACK) && !SqAttacked(*pos, D1, BLACK) {
+					// fmt.Printf("WQCA")
+					AddQuietMove(pos, PackMove(int(E1), int(C1), EMPTY, EMPTY, MFLAGCA), list)
+				}
+			}
+		}
 	} else {
 		for pceNum := 0; int8(pceNum) < pos.pceNum[BlackPawn]; pceNum++ {
 			sq := pos.pieceList[BlackPawn][pceNum]
@@ -184,21 +190,23 @@ func GenerateAllMoves(pos *Board, list *MoveList) {
 			}
 		}
 
-		// if pos.castlePerm & uint8(BKCA) {
-		// 	if pos.pieces[F8] == EMPTY && pos.pieces[G8] == EMPTY {
-		// 		if !SqAttacked(E8, WHITE, pos) && !SqAttacked(F8, WHITE, pos) {
-		// 			AddQuietMove(pos, PackMove(E8, G8, EMPTY, EMPTY, MFLAGCA), list);
-		// 		}
-		// 	}
-		// }
+		if (pos.castlePerm & uint8(BKCA)) != 0 {
+			if pos.pieces[F8] == EMPTY && pos.pieces[G8] == EMPTY {
+				if !SqAttacked(*pos, E8, WHITE) && !SqAttacked(*pos, F8, WHITE) {
+					fmt.Printf("BKCA")
+					AddQuietMove(pos, PackMove(int(E8), int(G8), EMPTY, EMPTY, MFLAGCA), list)
+				}
+			}
+		}
 
-		// if(pos.castlePerm & uint8(BQCA)) {
-		// 	if(pos.pieces[D8] == EMPTY && pos.pieces[C8] == EMPTY && pos.pieces[B8] == EMPTY) {
-		// 		if((!SqAttacked(E8, WHITE, pos)) && (!SqAttacked(D8, WHITE, pos))) {
-		// 			AddQuietMove(pos, PackMove(E8, C8, EMPTY, EMPTY, MFLAGCA), list);
-		// 		}
-		// 	}
-		// }
+		if (pos.castlePerm & uint8(BQCA)) != 0 {
+			if pos.pieces[D8] == EMPTY && pos.pieces[C8] == EMPTY && pos.pieces[B8] == EMPTY {
+				if (!SqAttacked(*pos, E8, WHITE)) && (!SqAttacked(*pos, D8, WHITE)) {
+					fmt.Printf("BQCA")
+					AddQuietMove(pos, PackMove(int(E8), int(C8), EMPTY, EMPTY, MFLAGCA), list)
+				}
+			}
+		}
 	}
 
 	// wB, wR, wQ -- bB, bR, bQ
@@ -209,6 +217,7 @@ func GenerateAllMoves(pos *Board, list *MoveList) {
 	pceIndex++
 	for pce != 0 {
 		assert(PieceValid(pce))
+		fmt.Printf("Piece: %c %v\n", PieceChar[pce], pce)
 
 		for pceNum := 0; pceNum < int(pos.pceNum[pce]); pceNum++ {
 			sq := pos.pieceList[pce][pceNum]
@@ -221,10 +230,13 @@ func GenerateAllMoves(pos *Board, list *MoveList) {
 				for !SQOFFBOARD(t_sq) {
 					if pos.pieces[t_sq] != EMPTY {
 						if PieceColor[pos.pieces[t_sq]] == (side ^ 1) {
+							fmt.Printf("%v %v %v %v\n", PieceColor[pos.pieces[t_sq]], side, side^1, pos.pieces[t_sq])
+							fmt.Printf("  Capture Move: %s\n", PrMove(PackMove(sq, t_sq, pos.pieces[t_sq], EMPTY, 0)))
 							AddCaptureMove(pos, PackMove(sq, t_sq, pos.pieces[t_sq], EMPTY, 0), list)
 						}
 						break
 					}
+					fmt.Printf("  Quiet Move: %s\n", PrMove(PackMove(sq, t_sq, pos.pieces[t_sq], EMPTY, 0)))
 					AddQuietMove(pos, PackMove(sq, t_sq, EMPTY, EMPTY, 0), list)
 					t_sq += dir
 				}
@@ -239,6 +251,7 @@ func GenerateAllMoves(pos *Board, list *MoveList) {
 	pceIndex++
 	for pce != 0 {
 		assert(PieceValid(pce))
+		fmt.Printf("Piece: %c\n", PieceChar[pce])
 
 		for pceNum := 0; pceNum < int(pos.pceNum[pce]); pceNum++ {
 			sq := pos.pieceList[pce][pceNum]
@@ -254,10 +267,13 @@ func GenerateAllMoves(pos *Board, list *MoveList) {
 
 				if pos.pieces[t_sq] != EMPTY {
 					if PieceColor[pos.pieces[t_sq]] == (side ^ 1) {
+						fmt.Printf("%v %v %v %v\n", PieceColor[pos.pieces[t_sq]], side, side^1, pos.pieces[t_sq])
+						fmt.Printf("  Capture Move: %s\n", PrMove(PackMove(sq, t_sq, pos.pieces[t_sq], EMPTY, 0)))
 						AddCaptureMove(pos, PackMove(sq, t_sq, pos.pieces[t_sq], EMPTY, 0), list)
 					}
 					continue
 				}
+				fmt.Printf("  Quiet Move: %s\n", PrMove(PackMove(sq, t_sq, pos.pieces[t_sq], EMPTY, 0)))
 				AddQuietMove(pos, PackMove(sq, t_sq, EMPTY, EMPTY, 0), list)
 			}
 		}

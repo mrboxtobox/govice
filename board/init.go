@@ -18,7 +18,7 @@ var BigPiece = [13]bool{false, false, true, true, true, true, true, false, true,
 var MajorPiece = [13]bool{false, false, false, false, true, true, true, false, false, false, true, true, true}
 var MinorPiece = [13]bool{false, false, true, true, false, false, false, false, true, true, false, false, false}
 var PieceValue = [13]int{0, 100, 325, 325, 550, 1_000, 50_000, 100, 325, 325, 550, 1_000, 50_000}
-var PieceColor = [13]Color{Both, WHITE, WHITE, WHITE, WHITE, WHITE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK}
+var PieceColor = [13]Color{Both, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK}
 
 var FilesBrd [BoardSquareCount]int
 var RanksBoard [BoardSquareCount]int

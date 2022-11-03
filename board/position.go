@@ -49,10 +49,10 @@ func UpdateListsMaterial(pos *Board) {
 			pos.pceNum[piece] += 1
 
 			if piece == WhiteKing {
-				pos.kings[WHITE] = Square(index)
+				pos.KingSq[WHITE] = Square(index)
 			}
 			if piece == BlackKing {
-				pos.kings[BLACK] = Square(index)
+				pos.KingSq[BLACK] = Square(index)
 			}
 			sq := int8(index)
 

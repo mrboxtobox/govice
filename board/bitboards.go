@@ -19,11 +19,11 @@ var (
 )
 
 // Important, the value needs to be received.
-func ClearBit(bb *uint64, sq Square) {
+func ClearBit(bb *uint64, sq int) {
 	*bb &= ClearMask[sq]
 }
 
-func SetBit(bb *uint64, sq Square) {
+func SetBit(bb *uint64, sq int) {
 	*bb |= SetMask[sq]
 }
 
