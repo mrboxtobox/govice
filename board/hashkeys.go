@@ -14,7 +14,7 @@ func GeneratePositionKey(board Board) uint64 {
 	}
 
 	// Side.
-	if board.side == WHITE {
+	if board.Side == WHITE {
 		key ^= SideKey
 	}
 

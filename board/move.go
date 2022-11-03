@@ -26,6 +26,9 @@ type MoveList struct {
 func PrintMoveList(list *MoveList) {
 	for index := 0; index < list.Count; index++ {
 		fmt.Printf("%d Move: %s\n", index, PrMove(list.Moves[index].move))
+		if list.Moves[index].move&MFLAGCA != 0 {
+			fmt.Println("---> Capture")
+		}
 	}
 }
 

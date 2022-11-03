@@ -109,9 +109,9 @@ func ParseFEN(pos *Board, fen string) {
 
 	assert(fen[curr] == 'w' || fen[curr] == 'b')
 	if fen[curr] == 'w' {
-		pos.side = WHITE
+		pos.Side = WHITE
 	} else {
-		pos.side = BLACK
+		pos.Side = BLACK
 	}
 
 	curr += 2

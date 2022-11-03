@@ -38,7 +38,7 @@ func PrintBoard(pos Board) {
 	}
 	fmt.Print("\n\n")
 
-	fmt.Printf("Side: %v\n", pos.side)
+	fmt.Printf("Side: %v\n", pos.Side)
 	fmt.Printf("En Passant:%d\n", pos.enPas)
 	var castle string
 	if pos.castlePerm&uint8(WKCA) > 0 {
@@ -144,12 +144,12 @@ func CheckBoard(pos *Board) {
 	assert(tmpMajorPiece[WHITE] == pos.majorPieceCounts[WHITE] && tmpMajorPiece[BLACK] == pos.majorPieceCounts[BLACK])
 	assert(tmpBigPiece[WHITE] == pos.bigPieceCounts[WHITE] && tmpBigPiece[BLACK] == pos.bigPieceCounts[BLACK])
 
-	assert(pos.side == WHITE || pos.side == BLACK)
+	assert(pos.Side == WHITE || pos.Side == BLACK)
 	assert(GeneratePositionKey(*pos) == pos.positionKey)
 
 	assert(pos.enPas == NO_SQ ||
-		(Rank(RanksBoard[pos.enPas]) == Rank6 && pos.side == WHITE) ||
-		(Rank(RanksBoard[pos.enPas]) == Rank3 && pos.side == BLACK))
+		(Rank(RanksBoard[pos.enPas]) == Rank6 && pos.Side == WHITE) ||
+		(Rank(RanksBoard[pos.enPas]) == Rank3 && pos.Side == BLACK))
 
 	// fmt.Println(pos.pieces, pos.pieces[pos.kings[White]])
 	assert(pos.pieces[pos.kings[WHITE]] == WhiteKing)
@@ -176,9 +176,6 @@ func ResetBoard(board *Board) {
 		board.majorPieceCounts[index] = 0
 		board.minorPieceCounts[index] = 0
 		board.material[index] = 0
-	}
-
-	for index := 0; index < 2; index++ {
 		board.Pawns[index] = 0
 	}
 
@@ -189,7 +186,7 @@ func ResetBoard(board *Board) {
 	board.kings[WHITE] = NO_SQ
 	board.kings[BLACK] = NO_SQ
 
-	board.side = Both
+	board.Side = Both
 	board.enPas = NO_SQ
 	board.fiftyMoveCount = 0
 
@@ -215,7 +212,7 @@ type Board struct {
 
 	kings [2]Square
 	enPas Square
-	side  Color
+	Side  Color
 
 	// When this hits 100, the game is drawn (fifty-move rule).
 	fiftyMoveCount uint8
