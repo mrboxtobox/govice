@@ -202,7 +202,7 @@ func GenerateAllMoves(pos *Board, list *MoveList) {
 	}
 
 	// wB, wR, wQ -- bB, bR, bQ
-	// Slides
+	// Sliding pieces
 
 	pceIndex := LoopSlideIndex[side]
 	pce := int(LoopSlidePce[pceIndex])
