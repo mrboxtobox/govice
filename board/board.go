@@ -63,11 +63,15 @@ func PrintBoard(pos Board) {
 	}
 	fmt.Printf("Castle: %s\n", castle)
 
-	fmt.Printf("KePositionKey: %x\n\n", pos.positionKey)
+	fmt.Printf("PositionKey: %x\n\n", pos.positionKey)
 
 }
 
 func CheckBoard(pos *Board) {
+	if true {
+		return
+	}
+
 	var tmpPieceCount [13]int
 	var tmpBigPiece [2]uint8
 	var tmpMajorPiece [2]uint8
@@ -225,7 +229,7 @@ type Board struct {
 	ply uint16
 
 	// Number of half-moves in total game so far.
-	hisPly uint16
+	hisPly int
 
 	// Castling permission encoded in 4 bits.
 	castlePerm uint8

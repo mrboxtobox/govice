@@ -58,11 +58,11 @@ func UpdateListsMaterial(pos *Board) {
 
 			// TODO: Need to verify this pointer is correctly passed.
 			if piece == WhitePawn {
-				SetBit(&pos.Pawns[WHITE], Square(SQ64(sq)))
-				SetBit(&pos.Pawns[Both], Square(SQ64(sq)))
+				SetBit(&pos.Pawns[WHITE], int(SQ64(sq)))
+				SetBit(&pos.Pawns[Both], int(SQ64(sq)))
 			} else if piece == BlackPawn {
-				SetBit(&pos.Pawns[BLACK], Square(SQ64(sq)))
-				SetBit(&pos.Pawns[Both], Square(SQ64(sq)))
+				SetBit(&pos.Pawns[BLACK], int(SQ64(sq)))
+				SetBit(&pos.Pawns[Both], int(SQ64(sq)))
 			}
 
 		}
