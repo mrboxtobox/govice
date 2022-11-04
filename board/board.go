@@ -267,12 +267,6 @@ type Board struct {
 	// Stores 2 moves that have most recently caused a beta-cutoff
 	// TODO: need to check.
 	searchKillers [2][MaxDepth]int
-
-	// Fail high: Look at move ordering.
-	fh float32
-
-	// Fail high first
-	fhf float32
 }
 
 type UndoInfo struct {

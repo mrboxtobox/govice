@@ -20,7 +20,7 @@ const (
 type SearchInfo struct {
 	starttime time.Time
 	stoptime  time.Time
-	depth     int
+	Depth     int
 	depthset  int
 	timeset   bool
 	movestogo int
@@ -43,6 +43,7 @@ type SearchInfo struct {
 
 func CheckUp(info *SearchInfo) {
 	if info.timeset && time.Now().After(info.stoptime) {
+		// fmt.Println("Stopping time")
 		info.stopped = true
 	}
 
@@ -107,11 +108,11 @@ func ClearForSearch(pos *Board, info *SearchInfo) {
 }
 
 func Quiescence(alpha, beta int, pos *Board, info *SearchInfo) int {
-	//  int MoveNum := 0;
-	Legal := 0
-	//  int Score;
-	list := &MoveList{}
-	//  MoveLIST list[1];
+	// //  int MoveNum := 0;
+	// Legal := 0
+	// //  int Score;
+	// list := &MoveList{}
+	// //  MoveLIST list[1];
 
 	CheckBoard(pos)
 	assert(beta > alpha)
@@ -122,63 +123,65 @@ func Quiescence(alpha, beta int, pos *Board, info *SearchInfo) int {
 
 	info.nodes++
 
-	if IsRepetition(pos) || pos.fiftyMove >= 100 {
-		return 0
-	}
+	// if IsRepetition(pos) || pos.fiftyMove >= 100 {
+	// 	return 0
+	// }
 
-	if pos.ply > MaxDepth-1 {
-		return EvalPosition(pos)
-	}
+	// if pos.ply > MaxDepth-1 {
+	// 	return EvalPosition(pos)
+	// }
 
-	Score := EvalPosition(pos)
+	// Score := EvalPosition(pos)
 
-	assert(Score > -INF && Score < INF)
+	// assert(Score > -INF && Score < INF)
 
-	if Score >= beta {
-		return beta
-	}
+	// if Score >= beta {
+	// 	return beta
+	// }
 
-	if Score > alpha {
-		alpha = Score
-	}
+	// if Score > alpha {
+	// 	alpha = Score
+	// }
 
-	GenerateAllCaps(pos, list)
+	// GenerateAllCaps(pos, list)
 
-	Score = -INF
+	// Score = -INF
 
-	for MoveNum := 0; MoveNum < list.Count; MoveNum++ {
-		//  PickNextMove(MoveNum, list);
+	// for MoveNum := 0; MoveNum < list.Count; MoveNum++ {
+	// 	//  PickNextMove(MoveNum, list);
 
-		//  if (!MakeMove(pos, list.Moves[MoveNum].Move)){
-		// 	 continue
-		// 	}
+	// 	//  if (!MakeMove(pos, list.Moves[MoveNum].Move)){
+	// 	// 	 continue
+	// 	// 	}
 
-		Legal++
-		Score := -Quiescence(-beta, -alpha, pos, info)
-		TakeMove(pos)
+	// 	Legal++
+	// 	Score := -Quiescence(-beta, -alpha, pos, info)
+	// 	TakeMove(pos)
 
-		if info.stopped {
-			return 0
-		}
+	// 	if info.stopped {
+	// 		return 0
+	// 	}
 
-		if Score > alpha {
-			if Score >= beta {
-				// We searched the best move first.
-				if Legal == 1 {
-					info.fhf++
-				}
-				// Otherwise, we just failed high.
-				info.fh++
-				return beta
-			}
-			alpha = Score
-		}
-	}
+	// 	if Score > alpha {
+	// 		if Score >= beta {
+	// 			// We searched the best move first.
+	// 			if Legal == 1 {
+	// 				info.fhf++
+	// 			}
+	// 			// Otherwise, we just failed high.
+	// 			info.fh++
+	// 			return beta
+	// 		}
+	// 		alpha = Score
+	// 	}
+	// }
 
-	return alpha
+	// return alpha
+	return EvalPosition(pos)
 }
 
 func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool) int {
+	// fmt.Println("in ab")
 	PvMove := NOMOVE
 	Legal := 0
 	OldAlpha := alpha
@@ -190,7 +193,11 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 	assert(depth >= 0)
 
 	if depth <= 0 {
-		return Quiescence(alpha, beta, pos, info)
+		// TODO: Move to Quiescence.
+		info.nodes++
+		// fmt.Println("Returning quiescnece")
+		return EvalPosition(pos)
+		// return Quiescence(alpha, beta, pos, info)
 	}
 
 	if (info.nodes & 2047) == 0 {
@@ -201,17 +208,19 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 
 	if (IsRepetition(pos) || (pos.fiftyMove >= 100)) && (pos.ply > 0) {
 		// Return draw estimate count.
+		// fmt.Println("Is repetition")
 		return 0
 	}
 
 	if pos.ply > MaxDepth-1 {
+		// fmt.Println("Reached max depth")
 		return EvalPosition(pos)
 	}
 
 	InCheck := SqAttacked(*pos, pos.KingSq[pos.Side], pos.Side^1)
-	if InCheck == true {
-		depth++
-	}
+	// if InCheck == true {
+	// 	depth++
+	// }
 
 	// if ProbePvTable(pos, &PvMove, &Score, alpha, beta, depth) {
 	// 	pos.HashTable.cut++
@@ -266,9 +275,9 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 			if Score > alpha {
 				if Score >= beta {
 					if Legal == 1 {
-						// info.fhf++
+						info.fhf++
 					}
-					// info.fh++
+					info.fh++
 
 					if list.Moves[MoveNum].Move&MFLAGCAP == 0 {
 						pos.searchKillers[1][pos.ply] = pos.searchKillers[0][pos.ply]
@@ -292,6 +301,7 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 		if InCheck {
 			return -INF + int(pos.ply) // TODO: Why not use MATE
 		} else {
+			// fmt.Println("Returning bad non-legal move")
 			return 0
 		}
 	}
@@ -302,7 +312,7 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 	if alpha != OldAlpha {
 		StorePvMove(pos, BestMove /*, BestScore, HFEXACT, depth*/)
 	} else {
-		StorePvMove(pos, BestMove /*, alpha, HFALPHA, depth*/)
+		// StorePvMove(pos, BestMove /*, alpha, HFALPHA, depth*/)
 	}
 
 	return alpha
@@ -320,31 +330,35 @@ func SearchPosition(pos *Board, info *SearchInfo) {
 	//  }
 
 	if bestMove == NOMOVE {
-		for currentDepth := 1; currentDepth <= info.depth; currentDepth++ {
+		for currentDepth := 1; currentDepth <= info.Depth; currentDepth++ {
+			// fmt.Println("doing ab")
 			bestScore = AlphaBeta(-INF, INF, currentDepth, pos, info, true)
-
 			if info.stopped {
 				break
 			}
+			// fmt.Println("out ab")
 
 			pvMoves = GetPvLine(currentDepth, pos)
 			bestMove = pos.PvArray[0]
 
 			if info.GAME_MODE == UCIMODE {
 				fmt.Printf("info score cp %d depth %d nodes %d time %d ",
-					bestScore, currentDepth, info.nodes, time.Since(info.starttime))
+					bestScore, currentDepth, info.nodes, time.Since(info.starttime).Milliseconds())
 			} else if info.POST_THINKING {
 				fmt.Printf("score:%d depth:%d nodes:%d time:%d(ms) ",
-					bestScore, currentDepth, info.nodes, time.Since(info.starttime))
+					bestScore, currentDepth, info.nodes, time.Since(info.starttime).Milliseconds())
+			} else {
+				fmt.Printf("score:%d depth:%d nodes:%d time:%d(ms) ",
+					bestScore, currentDepth, info.nodes, time.Since(info.starttime).Milliseconds())
 			}
 
-			if info.GAME_MODE == UCIMODE || info.POST_THINKING {
+			if info.GAME_MODE == UCIMODE || info.POST_THINKING || true {
 				pvMoves = GetPvLine(currentDepth, pos)
 				fmt.Printf("pv")
 				for pvNum := 0; pvNum < pvMoves; pvNum++ {
 					fmt.Printf(" %s", PrMove(pos.PvArray[pvNum]))
-					fmt.Printf("\n")
 				}
+				fmt.Printf("\n")
 			}
 			fmt.Printf("\n")
 			fmt.Printf("Ordering:%.2f\n", (info.fhf / info.fh))
@@ -354,7 +368,7 @@ func SearchPosition(pos *Board, info *SearchInfo) {
 	if info.GAME_MODE == UCIMODE {
 		fmt.Printf("bestmove %s\n", PrMove(bestMove))
 	} else {
-		fmt.Printf("\n\n***!! Achebe makes move %s !!***\n\n", PrMove(bestMove))
+		fmt.Printf("\n\n***!! Achebe makes move %s (%d) !!***\n\n", PrMove(bestMove), bestScore)
 		MakeMove(pos, bestMove)
 		PrintBoard(*pos)
 	}
