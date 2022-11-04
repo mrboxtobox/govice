@@ -14,6 +14,13 @@ var PieceRookQueen = [13]bool{false, false, false, false, true, true, false, fal
 var PieceBishopQueen = [13]bool{false, false, false, true, false, true, false, false, false, true, false, true, false}
 var PieceSlides = [13]bool{false, false, false, true, true, true, false, false, false, true, true, true, false}
 
+var IsolatedMask [64]uint64
+var WhitePassedMask [64]uint64
+var BlackPassedMask [64]uint64
+var FileBBMask [64]uint64
+
+// var IsolatedMask = [64]int{}
+
 func IsBQ(piece Piece) bool {
 	return PieceBishopQueen[piece]
 }

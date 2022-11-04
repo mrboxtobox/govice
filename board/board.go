@@ -81,7 +81,7 @@ func CheckBoard(pos *Board) {
 	var tmpPawns [3]uint64
 	tmpPawns[WHITE] = pos.Pawns[WHITE]
 	tmpPawns[BLACK] = pos.Pawns[BLACK]
-	tmpPawns[Both] = pos.Pawns[Both]
+	tmpPawns[BOTH] = pos.Pawns[BOTH]
 
 	// Check piece list.
 	for piece := WhitePawn; piece <= BlackKing; piece++ {
@@ -108,7 +108,7 @@ func CheckBoard(pos *Board) {
 		}
 
 		// fmt.Println(color, piece, sq64)
-		if color != Both {
+		if color != BOTH {
 			tmpMaterial[color] += PieceValue[piece]
 		}
 	}
@@ -123,7 +123,7 @@ func CheckBoard(pos *Board) {
 	assert(pcount == pos.pceNum[WhitePawn])
 	pcount = CountBits(tmpPawns[BLACK])
 	assert(pcount == pos.pceNum[BlackPawn])
-	pcount = CountBits(tmpPawns[Both])
+	pcount = CountBits(tmpPawns[BOTH])
 	assert(pcount == pos.pceNum[WhitePawn]+pos.pceNum[BlackPawn])
 
 	// Check bitboard squares.
@@ -138,8 +138,8 @@ func CheckBoard(pos *Board) {
 		assert(pos.pieces[SQ120(sq64)] == BlackPawn)
 	}
 
-	for tmpPawns[Both] != 0 {
-		sq64 := PopBit(&tmpPawns[Both])
+	for tmpPawns[BOTH] != 0 {
+		sq64 := PopBit(&tmpPawns[BOTH])
 		assert(pos.pieces[SQ120(sq64)] == WhitePawn || pos.pieces[SQ120(sq64)] == BlackPawn)
 	}
 
@@ -194,7 +194,7 @@ func ResetBoard(board *Board) {
 	board.KingSq[WHITE] = NO_SQ
 	board.KingSq[BLACK] = NO_SQ
 
-	board.Side = Both
+	board.Side = BOTH
 	board.enPas = NO_SQ
 	board.fiftyMove = 0
 
@@ -205,6 +205,7 @@ func ResetBoard(board *Board) {
 
 	board.HashTable = &PVTable{}
 	InitHashTable(board.HashTable, PvSize)
+
 }
 
 const (
@@ -228,7 +229,7 @@ type Board struct {
 	// When this hits 100, the game is drawn (fifty-move rule).
 	fiftyMove uint8
 
-	// Number of half-moves in current search.
+	// Number of half-moves in current search (reset to 0 at the start of search).
 	ply uint16
 
 	// Number of half-moves in total game so far.
@@ -255,6 +256,23 @@ type Board struct {
 	pieceList [13][10]int
 
 	HashTable *PVTable
+	PvArray   [MaxDepth]int
+
+	// History heuristic.
+	// Index by (piece type, board square)
+	// Reset at start of search
+	// When a move improves alpha, the peice type and to-square will be increased by 1
+	searchHistory [13][BoardSquareCount]int
+
+	// Stores 2 moves that have most recently caused a beta-cutoff
+	// TODO: need to check.
+	searchKillers [2][MaxDepth]int
+
+	// Fail high: Look at move ordering.
+	fh float32
+
+	// Fail high first
+	fhf float32
 }
 
 type UndoInfo struct {
@@ -330,7 +348,7 @@ type Color uint8
 const (
 	WHITE Color = iota
 	BLACK
-	Both
+	BOTH
 )
 
 // Using VICE's Board Representation. See github.com/peterwankman/vice.

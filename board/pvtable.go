@@ -6,8 +6,9 @@ import (
 )
 
 const PvSize = 0x10 * 2
+const MaxDepth = 64
 
-// const MAXDEPTH =
+// const MaxDepth =
 
 // Optimization option is size ordering.
 type PVEntry struct {
@@ -20,34 +21,37 @@ type PVTable struct {
 	// TODO: Should I use a pointer?
 	pTable     []PVEntry
 	numEntries int
+	cut        int
 }
 
 // TODO: Make the TT global.
 
-// func GetPvLine(depth int, pos *Board) {
-// 	move := ProbePvMove(pos);
-// 	count  = 0;
+func GetPvLine(depth int, pos *Board) int {
+	move := ProbePvTable(pos)
+	count := 0
 
-// 	assert(depth < MAXDEPTH);
+	assert(depth < MaxDepth)
 
-// 	 for move != NOMOVE && count < depth {
-// 		 assert(count < MAXDEPTH);
+	for move != NOMOVE && count < depth {
+		assert(count < MaxDepth)
 
-// 		 if(MoveExists(pos, move) {
-// 			 MakeMove(pos, move);
-// 			 pos.PvArray[count++] := move;
-// 		 } else {
-// 			 break;
-// 		 }
-// 		 move := ProbePvMove(pos);
-// 	 }
+		// TODO: Move is done twice.
+		if MoveExists(pos, move) {
+			MakeMove(pos, move)
+			pos.PvArray[count] = move
+			count++
+		} else {
+			break
+		}
+		move = ProbePvTable(pos)
+	}
 
-// 	 for pos.ply > 0 {
-// 		 TakeMove(pos);
-// 	 }
-
-// 	 return count;
-//  }
+	// Reset to initial state.
+	for pos.ply > 0 {
+		TakeMove(pos)
+	}
+	return count
+}
 
 func ClearHashTable(table *PVTable) {
 	for _, tableEntry := range table.pTable {
@@ -80,10 +84,10 @@ func StorePvMove(pos *Board, move /*,score, flags, depth*/ int) {
 	index := pos.posKey % uint64(pos.HashTable.numEntries)
 
 	assert(index >= 0 && index <= uint64(pos.HashTable.numEntries-1))
-	//  assert(depth>=1&&depth<MAXDEPTH);
+	//  assert(depth>=1&&depth<MaxDepth);
 	//  assert(flags>=HFALPHA&&flags<=HFEXACT);
 	//  assert(score>=-INF&&score<=INF);
-	//  assert(pos.ply>=0&&pos.ply<MAXDEPTH);
+	//  assert(pos.ply>=0&&pos.ply<MaxDepth);
 
 	// if pos.HashTable.pTable[index].posKey == 0 {
 	// 	pos.HashTable.newWrite++
@@ -105,11 +109,11 @@ func ProbePvTable(pos *Board /*var  *move,var  *score,var  alpha,var  beta,var  
 	index := pos.posKey % uint64(pos.HashTable.numEntries)
 
 	assert(index >= 0 && index <= uint64(pos.HashTable.numEntries-1))
-	//  assert(depth>=1&&depth<MAXDEPTH);
+	//  assert(depth>=1&&depth<MaxDepth);
 	//  assert(alpha<beta);
 	//  assert(alpha>=-INF&&alpha<=INF);
 	//  assert(beta>=-INF&&beta<=INF);
-	//  assert(pos.ply>=0&&pos.ply<MAXDEPTH);
+	//  assert(pos.ply>=0&&pos.ply<MaxDepth);
 
 	if pos.HashTable.pTable[index].posKey == pos.posKey {
 		return pos.HashTable.pTable[index].move
@@ -117,7 +121,7 @@ func ProbePvTable(pos *Board /*var  *move,var  *score,var  alpha,var  beta,var  
 		//  if pos.HashTable.pTable[index].depth >= depth {
 		// 	 pos.HashTable.hit++;
 
-		// 	 assert(pos.HashTable.pTable[index].depth>=1&&pos.HashTable.pTable[index].depth<MAXDEPTH);
+		// 	 assert(pos.HashTable.pTable[index].depth>=1&&pos.HashTable.pTable[index].depth<MaxDepth);
 		// 	 assert(pos.HashTable.pTable[index].flags>=HFALPHA&&pos.HashTable.pTable[index].flags<=HFEXACT);
 
 		// 	 *score := pos.HashTable.pTable[index].score;

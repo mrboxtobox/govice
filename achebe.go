@@ -45,10 +45,17 @@ func main() {
 		} else if txt[0] == 't' {
 			board.TakeMove(b)
 		} else if txt[0] == 'p' {
-			board.PerftTest(4, b)
-		} else if len(txt) > 5 {
+			// board.PerftTest(4, b)
+			max := board.GetPvLine(4, b)
+			fmt.Printf("PVLine: ")
+			for num := 0; num < max; num++ {
+				move := b.PvArray[num]
+				fmt.Printf(" %s", board.PrMove(move))
+			}
+		} else if len(txt) >= 4 {
 			move := board.ParseMove(txt, b)
 			if move != board.NOMOVE {
+				board.StorePvMove(b, move)
 				board.MakeMove(b, move)
 				if board.IsRepetition(b) {
 					fmt.Println("Repetition")

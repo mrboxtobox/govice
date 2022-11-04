@@ -59,7 +59,7 @@ func ClearPiece(sq int, pos *Board) {
 		}
 	} else {
 		ClearBit(&pos.Pawns[col], int(SQ64(int8(sq))))
-		ClearBit(&pos.Pawns[Both], int(SQ64(int8(sq))))
+		ClearBit(&pos.Pawns[BOTH], int(SQ64(int8(sq))))
 	}
 
 	// Swap with that position for the square.
@@ -93,7 +93,7 @@ func AddPiece(sq int, pos *Board, pce Piece) {
 		}
 	} else {
 		SetBit(&pos.Pawns[col], int(SQ64(int8(sq))))
-		SetBit(&pos.Pawns[Both], int(SQ64(int8(sq))))
+		SetBit(&pos.Pawns[BOTH], int(SQ64(int8(sq))))
 	}
 
 	pos.material[col] += PieceValue[pce]
@@ -121,9 +121,9 @@ func MovePiece(from, to int, pos *Board) {
 
 	if !BigPiece[pce] {
 		ClearBit(&pos.Pawns[col], int(SQ64(int8(from))))
-		ClearBit(&pos.Pawns[Both], int(SQ64(int8(from))))
+		ClearBit(&pos.Pawns[BOTH], int(SQ64(int8(from))))
 		SetBit(&pos.Pawns[col], int(SQ64(int8(to))))
-		SetBit(&pos.Pawns[Both], int(SQ64(int8(to))))
+		SetBit(&pos.Pawns[BOTH], int(SQ64(int8(to))))
 	}
 
 	for index = 0; index < int(pos.pceNum[pce]); index++ {
