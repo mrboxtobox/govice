@@ -34,58 +34,63 @@ func PrMove(move int) string {
 	}
 }
 
-// var ParseMove(char *ptrChar, S_BOARD *pos) {
-// 	var from, to;
-// 	var MoveNum = 0, Move = 0, PromPce = EMPTY;
-// 	S_MOVELIST list[1];
+func ParseMove(ptrChar string, pos *Board) int {
+	list := MoveList{}
 
-// 	if(ptrChar[1] > '8' || ptrChar[1] < '1') return NOMOVE;
-// 	if(ptrChar[3] > '8' || ptrChar[3] < '1') return NOMOVE;
-// 	if(ptrChar[0] > 'h' || ptrChar[0] < 'a') return NOMOVE;
-// 	if(ptrChar[2] > 'h' || ptrChar[2] < 'a') return NOMOVE;
+	if ptrChar[1] > '8' || ptrChar[1] < '1' {
+		return NOMOVE
+	}
+	if ptrChar[3] > '8' || ptrChar[3] < '1' {
+		return NOMOVE
+	}
+	if ptrChar[0] > 'h' || ptrChar[0] < 'a' {
+		return NOMOVE
+	}
+	if ptrChar[2] > 'h' || ptrChar[2] < 'a' {
+		return NOMOVE
+	}
 
-// 	from = FR2SQ(ptrChar[0] - 'a', ptrChar[1] - '1');
-// 	to = FR2SQ(ptrChar[2] - 'a', ptrChar[3] - '1');
+	from := FileRankTo120Square(File(ptrChar[0]-'a'), Rank(ptrChar[1]-'1'))
+	to := FileRankTo120Square(File(ptrChar[2]-'a'), Rank(ptrChar[3]-'1'))
 
-// 	ASSERT(SqOnBoard(from) && SqOnBoard(to));
+	assert(SqOnBoard(int(from)) && SqOnBoard(int(to)))
 
-// 	GenerateAllMoves(pos, list);
+	GenerateAllMoves(pos, &list)
 
-// 	for(MoveNum = 0; MoveNum < list->count; ++MoveNum) {
-// 		Move = list->moves[MoveNum].move;
-// 		if(FromSQ(Move) == from && ToSQ(Move) == to) {
-// 			PromPce = Promoted(Move);
-// 			if(PromPce != EMPTY) {
-// 				if(IsRQ(PromPce) && !IsBQ(PromPce) && ptrChar[4] == 'r') {
-// 					return Move;
-// 				} else if(!IsRQ(PromPce) && IsBQ(PromPce) && ptrChar[4] == 'b') {
-// 					return Move;
-// 				} else if(IsRQ(PromPce) && IsBQ(PromPce) && ptrChar[4] == 'q') {
-// 					return Move;
-// 				} else if(IsKn(PromPce) && ptrChar[4] == 'n') {
-// 					return Move;
-// 				}
-// 				continue;
-// 			}
-// 			return Move;
-// 		}
-// 	}
+	for MoveNum := 0; MoveNum < list.Count; MoveNum++ {
+		// fmt.Printf("Found move: %d", MoveNum)
+		Move := list.Moves[MoveNum].Move
+		if FromSQ(Move) == int(from) && ToSQ(Move) == int(to) {
+			PromPce := Piece(Promoted(Move))
+			if PromPce != EMPTY {
+				if IsRQ(PromPce) && !IsBQ(PromPce) && ptrChar[4] == 'r' {
+					// fmt.Printf("Found rq: %d", MoveNum)
+					return Move
+				} else if !IsRQ(PromPce) && IsBQ(PromPce) && ptrChar[4] == 'b' {
+					return Move
+				} else if IsRQ(PromPce) && IsBQ(PromPce) && ptrChar[4] == 'q' {
+					return Move
+				} else if IsKn(PromPce) && ptrChar[4] == 'n' {
+					return Move
+				}
+				continue
+			}
+			return Move
+		}
+	}
 
-// 	return NOMOVE;
-// }
+	return NOMOVE
+}
 
-// void PrintMoveList(const S_MOVELIST *list) {
-// 	var index = 0;
-// 	var score = 0;
-// 	var move = 0;
-// 	printf("MoveList:\n");
+func PrintMoveList(list *MoveList) {
+	fmt.Print("MoveList:\n")
 
-// 	for(index = 0; index < list->count; ++index) {
-// 		move = list->moves[index].move;
-// 		score = list->moves[index].score;
+	for index := 0; index < list.Count; index++ {
+		move := list.Moves[index].Move
+		score := list.Moves[index].Move
 
-// 		printf("Move:%d > %s (score:%d)\n", index + 1, PrMove(move), score);
-// 	}
+		fmt.Printf("Move:%d > %s (score:%d)\n", index+1, PrMove(move), score)
+	}
 
-// 	printf("MoveList Total %d Moves.\n\n", list->count);
-// }
+	fmt.Printf("MoveList Total %d Moves.\n\n", list.Count)
+}

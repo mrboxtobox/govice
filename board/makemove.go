@@ -5,19 +5,19 @@ import "fmt"
 const NOMOVE = 0
 
 func HASH_PCE(pos *Board, pce Piece, sq int) {
-	pos.positionKey ^= PieceKeys[pce][sq]
+	pos.posKey ^= PieceKeys[pce][sq]
 }
 
 func HASH_CA(pos *Board) {
-	pos.positionKey ^= CastleKeys[pos.castlePerm]
+	pos.posKey ^= CastleKeys[pos.castlePerm]
 }
 
 func HASH_SIDE(pos *Board) {
-	pos.positionKey ^= SideKey
+	pos.posKey ^= SideKey
 }
 
 func HASH_EP(pos *Board) {
-	pos.positionKey ^= PieceKeys[EMPTY][pos.enPas]
+	pos.posKey ^= PieceKeys[EMPTY][pos.enPas]
 }
 
 // Do bitwise and with this array and the square from and to
@@ -149,7 +149,7 @@ func MakeMove(pos *Board, move int) bool {
 	assert(SideValid(side))
 	assert(PieceValid(int(pos.pieces[from])))
 
-	pos.history[pos.hisPly].positionKey = pos.positionKey
+	pos.history[pos.hisPly].positionKey = pos.posKey
 
 	if (move & MFLAGEP) != 0 {
 		if side == WHITE {
@@ -330,7 +330,7 @@ func MakeNullMove(pos *Board) {
 	assert(!SqAttacked(*pos, pos.KingSq[pos.Side], pos.Side^1))
 
 	pos.ply++
-	pos.history[pos.hisPly].positionKey = pos.positionKey
+	pos.history[pos.hisPly].positionKey = pos.posKey
 
 	if pos.enPas != NO_SQ {
 		HASH_EP(pos)

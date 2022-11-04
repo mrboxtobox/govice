@@ -145,7 +145,7 @@ func ParseFEN(pos *Board, fen string) {
 		pos.enPas = Square(FileRankTo120Square(file, rank))
 	}
 
-	pos.positionKey = GeneratePositionKey(*pos)
+	pos.posKey = GeneratePositionKey(*pos)
 
 	UpdateListsMaterial(pos)
 }

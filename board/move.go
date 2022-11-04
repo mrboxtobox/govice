@@ -1,7 +1,5 @@
 package board
 
-import "fmt"
-
 /*
                             3 F
 0000 0000 0000 0000 0000 0111 1111 -> From: & 0x7F
@@ -23,14 +21,14 @@ type MoveList struct {
 	Count int
 }
 
-func PrintMoveList(list *MoveList) {
-	for index := 0; index < list.Count; index++ {
-		fmt.Printf("%d Move: %s\n", index, PrMove(list.Moves[index].Move))
-		if list.Moves[index].Move&MFLAGCA != 0 {
-			fmt.Println("---> Capture")
-		}
-	}
-}
+// func PrintMoveList(list *MoveList) {
+// 	for index := 0; index < list.Count; index++ {
+// 		fmt.Printf("%d Move: %s\n", index, PrMove(list.Moves[index].Move))
+// 		if list.Moves[index].Move&MFLAGCA != 0 {
+// 			fmt.Println("---> Capture")
+// 		}
+// 	}
+// }
 
 func FromSQ(move int) int {
 	return move & 0x7F

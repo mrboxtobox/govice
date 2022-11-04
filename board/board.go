@@ -63,7 +63,7 @@ func PrintBoard(pos Board) {
 	}
 	fmt.Printf("Castle: %s\n", castle)
 
-	fmt.Printf("PositionKey: %x\n\n", pos.positionKey)
+	fmt.Printf("PositionKey: %x\n\n", pos.posKey)
 
 }
 
@@ -149,7 +149,7 @@ func CheckBoard(pos *Board) {
 	assert(tmpBigPiece[WHITE] == pos.bigPieceCounts[WHITE] && tmpBigPiece[BLACK] == pos.bigPieceCounts[BLACK])
 
 	assert(pos.Side == WHITE || pos.Side == BLACK)
-	assert(GeneratePositionKey(*pos) == pos.positionKey)
+	assert(GeneratePositionKey(*pos) == pos.posKey)
 
 	assert(pos.enPas == NO_SQ ||
 		(Rank(RanksBoard[pos.enPas]) == Rank6 && pos.Side == WHITE) ||
@@ -201,7 +201,10 @@ func ResetBoard(board *Board) {
 	board.ply = 0
 	board.hisPly = 0
 	board.castlePerm = 0
-	board.positionKey = 0
+	board.posKey = 0
+
+	board.HashTable = &PVTable{}
+	InitHashTable(board.HashTable, PvSize)
 }
 
 const (
@@ -235,7 +238,7 @@ type Board struct {
 	castlePerm uint8
 
 	// Unique key generated for each position.
-	positionKey uint64
+	posKey uint64
 
 	pceNum [13]int8
 	// Big piece is everything that's not a pawn.
@@ -250,6 +253,8 @@ type Board struct {
 
 	// Piece List (as Map).
 	pieceList [13][10]int
+
+	HashTable *PVTable
 }
 
 type UndoInfo struct {

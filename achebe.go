@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
 	"math/rand"
+	"os"
 	"time"
 
 	"achebe/board"
@@ -19,45 +22,43 @@ func main() {
 	rand.Seed(time.Now().Unix())
 	board.Init()
 
-	board.PerftMain()
+	b := &board.Board{}
+	// board.PerftMain()
+	// fen := "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N w - - 0 1"
+	fen := "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+	board.ParseFEN(b, fen)
 
-	// b := board.Board{}
-	// fen := "rnbqkbnr/p1p1p3/3p3p/1p1p4/2P1Pp2/8/PP1P1PpP/RNBQKB1R b KQkq - 0 1"
-	// fen := "5k2/1n6/4n3/6N1/8/3N4/8/5K2 b - - 0 1"
+	scanner := bufio.NewScanner(os.Stdin)
 
-	// bishops := "6k1/1b6/4n3/8/1n4B1/1B3N2/1N6/2b3K1 w - - 0 1"
-	// rooks := "6k1/8/5r2/8/1nR5/5N2/8/6K1 w - - 0 1"
-	// queens := "6k1/1b6/4n3/8/1n4B1/1B3N2/1N6/2b3K1 w - - 0 1"
-	// castle := "3rk2r/8/8/8/8/8/6p1/R3K2R b KQk - 0 1"
-	// complex := "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
+	for {
+		board.PrintBoard(*b)
+		fmt.Printf("Please enter a move > ")
 
-	// board.ParseFEN(&b, complex)
-	// fmt.Println(b.Side)
-
-	// list := board.MoveList{
-	// 	Moves: [256]board.Move{},
-	// }
-	// board.GenerateAllMoves(&b, &list)
-	// // board.PrintMoveList(&list)
-
-	// input := bufio.NewScanner(os.Stdin)
-	// // input.Scan()
-
-	// var num int
-	// for input.Scan() {
-	// 	fmt.Println("input")
-	// 	move := list.Moves[num].Move
-
-	// 	if !board.MakeMove(&b, move) {
-	// 		continue
-	// 	}
-
-	// 	fmt.Println("made")
-	// 	board.PrintBoard(b)
-
-	// 	board.TakeMove(&b)
-	// 	fmt.Println("taken")
-	// 	board.PrintBoard(b)
-	// 	num++
-	// }
+		if !scanner.Scan() {
+			break
+		}
+		txt := scanner.Text()
+		if len(txt) == 0 {
+			continue
+		} else if txt[0] == 'q' {
+			break
+		} else if txt[0] == 't' {
+			board.TakeMove(b)
+		} else if txt[0] == 'p' {
+			board.PerftTest(4, b)
+		} else if len(txt) > 5 {
+			move := board.ParseMove(txt, b)
+			if move != board.NOMOVE {
+				board.MakeMove(b, move)
+				if board.IsRepetition(b) {
+					fmt.Println("Repetition")
+				}
+				// board.PrintBoard(*b)
+			} else {
+				fmt.Printf("Move not parsed: %s", txt)
+			}
+		} else {
+			fmt.Printf("Bad txt: %s\n", txt)
+		}
+	}
 }

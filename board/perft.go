@@ -7,7 +7,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
+
+// TODO: Vice takes around 3.9 seconds (with some printing).
 
 // https://raw.githubusercontent.com/mishoo/queen.lisp/master/perftsuite.epd
 type TestPosition struct {
@@ -65,6 +68,13 @@ func PerftMain() {
 			}
 		}
 	}
+}
+
+func PerftTest(depth int, pos *Board) {
+	fmt.Printf("Test to depth %d\n", depth)
+	start := time.Now()
+	nodes := Perft(depth, pos)
+	fmt.Printf("Test complete. Nodes visited: %d in time %dms\n", nodes, time.Since(start).Milliseconds())
 }
 
 func Perft(depth int, pos *Board) int {
