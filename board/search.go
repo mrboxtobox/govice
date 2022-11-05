@@ -123,61 +123,69 @@ func Quiescence(alpha, beta int, pos *Board, info *SearchInfo) int {
 
 	info.nodes++
 
-	// if IsRepetition(pos) || pos.fiftyMove >= 100 {
-	// 	return 0
-	// }
+	if IsRepetition(pos) || pos.fiftyMove >= 100 {
+		// TODO: Make draw more sensible.
+		return 0
+	}
 
-	// if pos.ply > MaxDepth-1 {
-	// 	return EvalPosition(pos)
-	// }
+	if pos.ply > MaxDepth-1 {
+		return EvalPosition(pos)
+	}
 
-	// Score := EvalPosition(pos)
+	Score := EvalPosition(pos)
 
-	// assert(Score > -INF && Score < INF)
+	assert(Score > -INF && Score < INF)
 
-	// if Score >= beta {
-	// 	return beta
-	// }
+	// We're not going to make any move that reduces beta so break early.
+	// Standing pat (how you're doing without making a move)
+	if Score >= beta {
+		return beta
+	}
 
-	// if Score > alpha {
-	// 	alpha = Score
-	// }
+	if Score > alpha {
+		alpha = Score
+	}
 
-	// GenerateAllCaps(pos, list)
+	list := &MoveList{}
+	GenerateAllCaps(pos, list)
 
-	// Score = -INF
+	Score = -INF
+	// var BestMove int
 
-	// for MoveNum := 0; MoveNum < list.Count; MoveNum++ {
-	// 	//  PickNextMove(MoveNum, list);
+	var Legal int
+	for MoveNum := 0; MoveNum < list.Count; MoveNum++ {
+		PickNextMove(MoveNum, list)
 
-	// 	//  if (!MakeMove(pos, list.Moves[MoveNum].Move)){
-	// 	// 	 continue
-	// 	// 	}
+		if !MakeMove(pos, list.Moves[MoveNum].Move) {
+			continue
+		}
 
-	// 	Legal++
-	// 	Score := -Quiescence(-beta, -alpha, pos, info)
-	// 	TakeMove(pos)
+		Legal++
+		Score := -Quiescence(-beta, -alpha, pos, info)
+		TakeMove(pos)
 
-	// 	if info.stopped {
-	// 		return 0
-	// 	}
+		if info.stopped {
+			// TODO: Return 0? Not alpha?
+			// Because we're breaking out here?
+			return 0
+		}
 
-	// 	if Score > alpha {
-	// 		if Score >= beta {
-	// 			// We searched the best move first.
-	// 			if Legal == 1 {
-	// 				info.fhf++
-	// 			}
-	// 			// Otherwise, we just failed high.
-	// 			info.fh++
-	// 			return beta
-	// 		}
-	// 		alpha = Score
-	// 	}
-	// }
+		if Score > alpha {
+			if Score >= beta {
+				// We searched the best move first.
+				if Legal == 1 {
+					info.fhf++
+				}
+				// Otherwise, we just failed high.
+				info.fh++
+				return beta
+			}
+			alpha = Score
+			// BestMove = list.Moves[MoveNum].Move
+		}
+	}
 
-	// return alpha
-	return EvalPosition(pos)
+	return alpha
 }
 
 func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool) int {
@@ -193,11 +201,7 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 	assert(depth >= 0)
 
 	if depth <= 0 {
-		// TODO: Move to Quiescence.
-		info.nodes++
-		// fmt.Println("Returning quiescnece")
-		return EvalPosition(pos)
-		// return Quiescence(alpha, beta, pos, info)
+		return Quiescence(alpha, beta, pos, info)
 	}
 
 	if (info.nodes & 2047) == 0 {
@@ -248,7 +252,7 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 	if PvMove != NOMOVE {
 		for MoveNum := 0; MoveNum < list.Count; MoveNum++ {
 			if list.Moves[MoveNum].Move == PvMove {
-				list.Moves[MoveNum].score = 2000000
+				list.Moves[MoveNum].score = 2_000_000
 				break
 			}
 		}
@@ -291,8 +295,10 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 					return beta
 				}
 				alpha = Score
-
+				BestMove = list.Moves[MoveNum].Move
 				if (list.Moves[MoveNum].Move & MFLAGCAP) == 0 {
+					// Prioritize moves nearer the root of the tree.
+					// Depth is decreasing so closer to root is higher.
 					pos.searchHistory[pos.pieces[FromSQ(BestMove)]][ToSQ(BestMove)] += depth
 				}
 			}
@@ -372,7 +378,7 @@ func SearchPosition(pos *Board, info *SearchInfo) {
 		fmt.Printf("bestmove %s\n", PrMove(bestMove))
 	} else {
 		fmt.Printf("\n\n***!! Achebe makes move %s (%d) !!***\n\n", PrMove(bestMove), bestScore)
-		MakeMove(pos, bestMove)
-		PrintBoard(*pos)
+		// MakeMove(pos, bestMove)
+		// PrintBoard(*pos)
 	}
 }

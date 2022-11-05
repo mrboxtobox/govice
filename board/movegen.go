@@ -42,7 +42,17 @@ func PackMove(from, to int, cap, pro Piece, fl int) int {
 }
 
 func AddQuietMove(pos *Board, move int, list *MoveList) {
+
 	list.Moves[list.Count].Move = move
+
+	if pos.searchKillers[0][pos.ply] == move {
+		list.Moves[list.Count].score = 900_000
+	} else if pos.searchKillers[1][pos.ply] == move {
+		list.Moves[list.Count].score = 800_000
+	} else {
+		list.Moves[list.Count].score = pos.searchHistory[pos.pieces[FromSQ(move)]][ToSQ(move)]
+	}
+
 	list.Moves[list.Count].score = 0
 	list.Count++
 }
@@ -311,122 +321,126 @@ func MoveExists(pos *Board, move int) bool {
 }
 
 func GenerateAllCaps(pos *Board, list *MoveList) {
-	// int pce = NoPiece;
-	// int side = pos.side;
-	// int sq = 0, t_sq = 0;
-	// int pceNum = 0;
+	// pce := EMPTY
+	side := pos.Side
+	// assert(CheckBoard(pos))
+	list.Count = 0
 
-	// int dir = 0;
-	// int index = 0;
-	// int pceIndex = 0;
+	if side == WHITE {
+		for pceNum := 0; int8(pceNum) < pos.pceNum[WhitePawn]; pceNum++ {
+			sq := int(pos.pieceList[WhitePawn][pceNum])
+			assert(SqOnBoard(sq))
 
-	// assert(CheckBoard(pos));
-	// list.count = 0;
+			if !SQOFFBOARD(sq+9) && PieceColor[pos.pieces[sq+9]] == BLACK {
+				AddWhitePawnCapMove(pos, sq, sq+9, pos.pieces[sq+9], list)
+			}
+			if !SQOFFBOARD(sq+11) && PieceColor[pos.pieces[sq+11]] == BLACK {
+				AddWhitePawnCapMove(pos, sq, sq+11, pos.pieces[sq+11], list)
+			}
 
-	// if(side == White) {
-	// 	for pceNum = 0; pceNum < pos.pceNum[WhitePawn]; ++pceNum) {
-	// 		sq = pos.pieceList[WhitePawn][pceNum];
-	// 		assert(SqOnBoard(sq));
+			if pos.enPas != NO_SQ {
+				if int(sq)+9 == int(pos.enPas) {
+					AddEnPassantMove(pos, PackMove(sq, sq+9, EMPTY, EMPTY, MFLAGEP), list)
+				}
+				if int(sq)+11 == int(pos.enPas) {
+					AddEnPassantMove(pos, PackMove(sq, sq+11, EMPTY, EMPTY, MFLAGEP), list)
+				}
+			}
+		}
+	} else {
+		for pceNum := 0; int8(pceNum) < pos.pceNum[BlackPawn]; pceNum++ {
+			sq := pos.pieceList[BlackPawn][pceNum]
+			assert(SqOnBoard(sq))
 
-	// 		if(!SQOFFBOARD(sq + 9) && PieceColor[pos.pieces[sq + 9]] == Black) {
-	// 			AddWhitePawnCapMove(pos, sq, sq + 9, pos.pieces[sq + 9], list);
-	// 		}
-	// 		if(!SQOFFBOARD(sq + 11) && PieceColor[pos.pieces[sq + 11]] == Black) {
-	// 			AddWhitePawnCapMove(pos, sq, sq + 11, pos.pieces[sq + 11], list);
-	// 		}
+			if !SQOFFBOARD(sq-9) && PieceColor[pos.pieces[sq-9]] == WHITE {
+				AddBlackPawnCapMove(pos, sq, sq-9, pos.pieces[sq-9], list)
+			}
+			if !SQOFFBOARD(sq-11) && PieceColor[pos.pieces[sq-11]] == WHITE {
+				AddBlackPawnCapMove(pos, sq, sq-11, pos.pieces[sq-11], list)
+			}
 
-	// 		if(pos.enPas != NoSquare) {
-	// 			if(sq + 9 == pos.enPas) {
-	// 				AddEnPassantMove(pos, PackMove(sq, sq + 9, NoPiece, NoPiece, MFLAGEP), list);
-	// 			}
-	// 			if(sq + 11 == pos.enPas) {
-	// 				AddEnPassantMove(pos, PackMove(sq, sq + 11, NoPiece, NoPiece, MFLAGEP), list);
-	// 			}
-	// 		}
-	// 	}
+			if pos.enPas != NO_SQ {
+				if sq-9 == int(pos.enPas) {
+					AddEnPassantMove(pos, PackMove(sq, sq-9, EMPTY, EMPTY, MFLAGEP), list)
+				}
+				if sq-11 == int(pos.enPas) {
+					AddEnPassantMove(pos, PackMove(sq, sq-11, EMPTY, EMPTY, MFLAGEP), list)
+				}
+			}
+		}
+	}
 
-	// } else {
-	// 	for pceNum = 0; pceNum < pos.pceNum[bP]; ++pceNum) {
-	// 		sq = pos.pieceList[bP][pceNum];
-	// 		assert(SqOnBoard(sq));
+	// wB, wR, wQ -- bB, bR, bQ
+	// Sliding pieces
 
-	// 		if(!SQOFFBOARD(sq - 9) && PieceColor[pos.pieces[sq - 9]] == White) {
-	// 			AddBlackPawnCapMove(pos, sq, sq - 9, pos.pieces[sq - 9], list);
-	// 		}
-	// 		if(!SQOFFBOARD(sq - 11) && PieceColor[pos.pieces[sq - 11]] == White) {
-	// 			AddBlackPawnCapMove(pos, sq, sq - 11, pos.pieces[sq - 11], list);
-	// 		}
+	pceIndex := LoopSlideIndex[side]
+	pce := int(LoopSlidePce[pceIndex])
+	pceIndex++
+	for pce != 0 {
+		assert(PieceValid(pce))
+		// fmt.Printf("Piece: %c %v\n", PieceChar[pce], pce)
 
-	// 		if(pos.enPas != NoSquare) {
-	// 			if(sq - 9 == pos.enPas) {
-	// 				AddEnPassantMove(pos, PackMove(sq, sq - 9, NoPiece, NoPiece, MFLAGEP), list);
-	// 			}
-	// 			if(sq - 11 == pos.enPas) {
-	// 				AddEnPassantMove(pos, PackMove(sq, sq - 11, NoPiece, NoPiece, MFLAGEP), list);
-	// 			}
-	// 		}
-	// 	}
+		for pceNum := 0; pceNum < int(pos.pceNum[pce]); pceNum++ {
+			sq := pos.pieceList[pce][pceNum]
+			assert(SqOnBoard(sq))
 
-	// }
+			for index := 0; index < NumDir[pce]; index++ {
+				dir := PceDir[pce][index]
+				t_sq := sq + dir
 
-	// pceIndex = LoopSlideIndex[side];
-	// pce = LoopSlidePce[pceIndex++];
-	//  for pce != 0 {
-	// 	assert(PieceValid(pce));
+				for !SQOFFBOARD(t_sq) {
+					if pos.pieces[t_sq] != EMPTY {
+						if PieceColor[pos.pieces[t_sq]] == (side ^ 1) {
+							// fmt.Printf("%v %v %v %v\n", PieceColor[pos.pieces[t_sq]], side, side^1, pos.pieces[t_sq])
+							// fmt.Printf("  Capture Move: %s\n", PrMove(PackMove(sq, t_sq, pos.pieces[t_sq], EMPTY, 0)))
+							AddCaptureMove(pos, PackMove(sq, t_sq, pos.pieces[t_sq], EMPTY, 0), list)
+						}
+						break
+					}
+					t_sq += dir
+				}
+			}
+		}
+		pce = int(LoopSlidePce[pceIndex])
+		pceIndex++
+	}
 
-	// 	for pceNum = 0; pceNum < pos.pceNum[pce]; ++pceNum {
-	// 		sq = pos.pieceList[pce][pceNum];
-	// 		assert(SqOnBoard(sq));
+	pceIndex = LoopNonSlideIndex[side]
+	pce = int(LoopNonSlidePce[pceIndex])
+	pceIndex++
+	for pce != 0 {
+		assert(PieceValid(pce))
+		// fmt.Printf("Piece: %c\n", PieceChar[pce])
 
-	// 		for index = 0; index < NumDir[pce]; ++index {
-	// 			dir = PceDir[pce][index];
-	// 			t_sq = sq + dir;
+		for pceNum := 0; pceNum < int(pos.pceNum[pce]); pceNum++ {
+			sq := pos.pieceList[pce][pceNum]
+			assert(SqOnBoard(sq))
 
-	// 			 for !SQOFFBOARD(t_sq) {
+			for index := 0; index < NumDir[pce]; index++ {
+				dir := PceDir[pce][index]
+				t_sq := sq + dir
 
-	// 				if(pos.pieces[t_sq] != NoPiece {
-	// 					if(PieceColor[pos.pieces[t_sq]] == (side ^ 1) {
-	// 						AddCaptureMove(pos, PackMove(sq, t_sq, pos.pieces[t_sq], NoPiece, 0), list);
-	// 					}
-	// 					break;
-	// 				}
-	// 				t_sq += dir;
-	// 			}
-	// 		}
-	// 	}
-	// 	pce = LoopSlidePce[pceIndex++];
-	// }
+				if SQOFFBOARD(t_sq) {
+					continue
+				}
 
-	// pceIndex = LoopNonSlideIndex[side];
-	// pce = LoopNonSlidePce[pceIndex++];
-	//  for pce != 0 {
-	// 	assert(PieceValid(pce));
-
-	// 	for pceNum = 0; pceNum < pos.pceNum[pce]; ++pceNum {
-	// 		sq = pos.pieceList[pce][pceNum];
-	// 		assert(SqOnBoard(sq));
-
-	// 		for index = 0; index < NumDir[pce]; ++index {
-	// 			dir = PceDir[pce][index];
-	// 			t_sq = sq + dir;
-
-	// 			if(SQOFFBOARD(t_sq))
-	// 				continue;
-
-	// 			if(pos.pieces[t_sq] != NoPiece {
-	// 				if(PieceColor[pos.pieces[t_sq]] == (side ^ 1) {
-	// 					AddCaptureMove(pos, PackMove(sq, t_sq, pos.pieces[t_sq], NoPiece, 0), list);
-	// 				}
-	// 				continue;
-	// 			}
-	// 		}
-	// 	}
-	// 	pce = LoopNonSlidePce[pceIndex++];
-	// }
+				if pos.pieces[t_sq] != EMPTY {
+					if PieceColor[pos.pieces[t_sq]] == (side ^ 1) {
+						// fmt.Printf("%v %v %v %v\n", PieceColor[pos.pieces[t_sq]], side, side^1, pos.pieces[t_sq])
+						// fmt.Printf("  Capture Move: %s\n", PrMove(PackMove(sq, t_sq, pos.pieces[t_sq], EMPTY, 0)))
+						AddCaptureMove(pos, PackMove(sq, t_sq, pos.pieces[t_sq], EMPTY, 0), list)
+					}
+					continue
+				}
+			}
+		}
+		pce = int(LoopNonSlidePce[pceIndex])
+		pceIndex++
+	}
 }
 
 // Move Ordering
 // 1. PV Move
-// 2. Cap -> MvvLva
+// 2. Cap . MvvLva
 // 3. Killers
 // 4. History score

@@ -32,7 +32,7 @@ func main() {
 	// board.PerftMain()
 	// fen := "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N w - - 0 1"
 	// fen := "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-	fen2 := "2rr3k/pp3pp1/1nnqbN1p/3pN3/2pP4/2P3Q1/PPB4P/R4RK1 w - -" // Mate in 3.
+	fen2 := "rnbqkb1r/pppp1ppp/8/4P3/6n1/7P/PPPNPPP1/R1BQKBNR b KQkq - 0 1" // Mate in 3.
 	board.ParseFEN(b, fen2)
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -47,7 +47,7 @@ func main() {
 		txt := scanner.Text()
 
 		info := board.SearchInfo{
-			Depth: 5,
+			Depth: 9,
 		}
 		board.SearchPosition(b, &info)
 		if len(txt) == 0 {
