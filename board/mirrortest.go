@@ -36,10 +36,15 @@ func MirrorEvalTest() {
 		count++
 	}
 
-	for _, p := range positions {
+	for i, p := range positions {
+		// if i > 1 {
+		// 	continue
+		// }
 		pos := &Board{}
 		ParseFEN(pos, p.fen)
+		// ParseFEN(pos, "1k2r2r/Bpq3pp/3b4/3Bp3/8/7b/PPP1QP2/R3R1K1 w - - 0 1")
 		ev1 := EvalPosition(pos)
+		// fmt.Println(ev1)
 		MirrorBoard(pos)
 		ev2 := EvalPosition(pos)
 		if ev1 != ev2 {
@@ -50,6 +55,9 @@ func MirrorEvalTest() {
 			PrintBoard(*pos)
 		} else {
 			// println("passed")
+		}
+		if i%10 == 0 {
+			println(i)
 		}
 	}
 }

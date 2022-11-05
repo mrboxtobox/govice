@@ -58,6 +58,7 @@ var RookTable = [64]int{
 	0, 0, 5, 10, 10, 5, 0, 0,
 }
 
+// Encourage castling.
 var KingE = [64]int{
 	-50, -10, 0, 0, 0, 0, -10, -50,
 	-10, 0, 10, 10, 10, 10, 0, -10,
@@ -144,6 +145,7 @@ func MirrorBoard(pos *Board) {
 	CheckBoard(pos)
 }
 
+// TODO: Need to confirm this.
 func MaterialDraw(pos *Board) bool {
 	if pos.pceNum[WhiteRook] == 0 && pos.pceNum[BlackRook] == 0 && pos.pceNum[WhiteQueen] == 0 && pos.pceNum[BlackQueen] == 0 {
 		if pos.pceNum[BlackBishop] == 0 && pos.pceNum[WhiteBishop] == 0 {
@@ -177,6 +179,7 @@ func MaterialDraw(pos *Board) bool {
 	return false
 }
 
+// When we're in an endgame situation.
 func ENDGAME_MAT() int {
 	return PieceValue[WhiteRook] + 2*PieceValue[WhiteKnight] + 2*PieceValue[WhitePawn]
 }
@@ -197,11 +200,16 @@ func EvalPosition(pos *Board) int {
 		assert(SqOnBoard(sq))
 		score += PawnTable[SQ64(int8(sq))]
 
+		// If isolated pawn, add the penalty (-10).
 		if (IsolatedMask[SQ64(int8(sq))] & pos.Pawns[WHITE]) == 0 {
+			// fmt.Printf("White Pawn Isolated: %s\n", PrSq(sq))
 			score += PawnIsolated
 		}
 
+		// If passed pawn for black, add the penalty.
+		// Zero means no pawns ahead of the black pawns.
 		if ((WhitePassedMask[SQ64(int8(sq))]) & pos.Pawns[BLACK]) == 0 {
+			// fmt.Printf("White Pawn Passed: %s\n", PrSq(sq))
 			score += PawnPassed[RanksBoard[sq]]
 		}
 	}
@@ -213,10 +221,13 @@ func EvalPosition(pos *Board) int {
 		score -= PawnTable[MIRROR64[SQ64(int8(sq))]]
 
 		if (IsolatedMask[SQ64(int8(sq))] & pos.Pawns[BLACK]) == 0 {
+			// fmt.Printf("Black Pawn Isolated: %s\n", PrSq(sq))
 			score -= PawnIsolated
 		}
 
 		if (BlackPassedMask[SQ64(int8(sq))] & pos.Pawns[WHITE]) == 0 {
+			// Black is going in the opposite direction.
+			// fmt.Printf("Black Pawn Passed: %s\n", PrSq(sq))
 			score -= PawnPassed[7-RanksBoard[sq]]
 		}
 	}
@@ -255,9 +266,11 @@ func EvalPosition(pos *Board) int {
 		assert(SqOnBoard(sq))
 		score += RookTable[SQ64(int8(sq))]
 
-		if pos.Pawns[BOTH]&FileBBMask[FilesBrd[sq]] != 0 {
+		// Open file == 0
+		if (pos.Pawns[BOTH] & FileBBMask[FilesBrd[sq]]) == 0 {
 			score += RookOpenFile
-		} else if pos.Pawns[WHITE]&FileBBMask[FilesBrd[sq]] != 0 {
+		} else if (pos.Pawns[WHITE] & FileBBMask[FilesBrd[sq]]) == 0 {
+			// When we don't have our own pawns, it's semi-open
 			score += RookSemiOpenFile
 		}
 	}
@@ -268,9 +281,9 @@ func EvalPosition(pos *Board) int {
 		assert(SqOnBoard(sq))
 		score -= RookTable[MIRROR64[SQ64(int8(sq))]]
 
-		if pos.Pawns[BOTH]&FileBBMask[FilesBrd[sq]] != 0 {
+		if (pos.Pawns[BOTH] & FileBBMask[FilesBrd[sq]]) == 0 {
 			score -= RookOpenFile
-		} else if pos.Pawns[BLACK]&FileBBMask[FilesBrd[sq]] != 0 {
+		} else if (pos.Pawns[BLACK] & FileBBMask[FilesBrd[sq]]) == 0 {
 			score -= RookSemiOpenFile
 		}
 	}
@@ -280,9 +293,9 @@ func EvalPosition(pos *Board) int {
 		sq := pos.pieceList[pce][pceNum]
 		assert(SqOnBoard(sq))
 
-		if pos.Pawns[BOTH]&FileBBMask[FilesBrd[sq]] != 0 {
+		if (pos.Pawns[BOTH] & FileBBMask[FilesBrd[sq]]) == 0 {
 			score += QueenOpenFile
-		} else if pos.Pawns[WHITE]&FileBBMask[FilesBrd[sq]] != 0 {
+		} else if (pos.Pawns[WHITE] & FileBBMask[FilesBrd[sq]]) == 0 {
 			score += QueenSemiOpenFile
 		}
 	}
@@ -292,9 +305,9 @@ func EvalPosition(pos *Board) int {
 		sq := pos.pieceList[pce][pceNum]
 		assert(SqOnBoard(sq))
 
-		if pos.Pawns[BOTH]&FileBBMask[FilesBrd[sq]] != 0 {
+		if (pos.Pawns[BOTH] & FileBBMask[FilesBrd[sq]]) == 0 {
 			score -= QueenOpenFile
-		} else if pos.Pawns[BLACK]&FileBBMask[FilesBrd[sq]] != 0 {
+		} else if (pos.Pawns[BLACK] & FileBBMask[FilesBrd[sq]]) != 0 {
 			score -= QueenSemiOpenFile
 		}
 	}
