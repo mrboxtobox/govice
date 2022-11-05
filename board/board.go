@@ -4,6 +4,8 @@ import (
 	"fmt"
 )
 
+const MaxDepth2 = 64
+
 func ShowSqAtSide(side Color, pos *Board) {
 	for rank := Rank8; rank >= Rank1; rank-- {
 		fmt.Printf("%d  ", rank+1)
@@ -202,10 +204,6 @@ func ResetBoard(board *Board) {
 	board.hisPly = 0
 	board.castlePerm = 0
 	board.posKey = 0
-
-	board.HashTable = &PVTable{}
-	InitHashTable(board.HashTable, PvSize)
-
 }
 
 const (
@@ -256,7 +254,7 @@ type Board struct {
 	pieceList [13][10]int
 
 	HashTable *PVTable
-	PvArray   [MaxDepth]int
+	PvArray   [MaxDepth2]int
 
 	// History heuristic.
 	// Index by (piece type, board square)
@@ -266,7 +264,7 @@ type Board struct {
 
 	// Stores 2 moves that have most recently caused a beta-cutoff
 	// TODO: need to check.
-	searchKillers [2][MaxDepth]int
+	searchKillers [2][MaxDepth2]int
 }
 
 type UndoInfo struct {

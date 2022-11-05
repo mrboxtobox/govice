@@ -25,6 +25,18 @@ var PceDir = [13][8]int{
 // NumDir the number of moves per piece.
 var NumDir = [13]int{0, 0, 8, 4, 4, 8, 8, 0, 8, 4, 4, 8, 8}
 
+var VictimScore = [13]int{0, 100, 200, 300, 400, 500, 600, 100, 200, 300, 400, 500, 600}
+
+var MvvLvaScores = [13][13]int{}
+
+func InitMvvLva() {
+	for Attacker := WhitePawn; Attacker <= BlackKing; Attacker++ {
+		for Victim := WhitePawn; Victim <= BlackKing; Victim++ {
+			MvvLvaScores[Victim][Attacker] = VictimScore[Victim] + 6 - (VictimScore[Attacker] / 100)
+		}
+	}
+}
+
 func PackMove(from, to int, cap, pro Piece, fl int) int {
 	return from | (to << 7) | (int(cap) << 14) | (int(pro) << 20) | fl
 }
@@ -37,13 +49,15 @@ func AddQuietMove(pos *Board, move int, list *MoveList) {
 
 func AddCaptureMove(pos *Board, move int, list *MoveList) {
 	list.Moves[list.Count].Move = move
-	list.Moves[list.Count].score = 0
+	list.Moves[list.Count].score = MvvLvaScores[Captured(move)][pos.pieces[FromSQ(move)]] + 1_000_000
 	list.Count++
 }
 
 func AddEnPassantMove(pos *Board, move int, list *MoveList) {
 	list.Moves[list.Count].Move = move
-	list.Moves[list.Count].score = 0
+	// Pawn Takes Pawn according to MvvLvaScores.
+	// Using 1000000 to make sure these are prioritized.
+	list.Moves[list.Count].score = 105 + 1_000_000
 	list.Count++
 }
 
@@ -410,3 +424,9 @@ func GenerateAllCaps(pos *Board, list *MoveList) {
 	// 	pce = LoopNonSlidePce[pceIndex++];
 	// }
 }
+
+// Move Ordering
+// 1. PV Move
+// 2. Cap -> MvvLva
+// 3. Killers
+// 4. History score

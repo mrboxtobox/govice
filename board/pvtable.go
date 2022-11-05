@@ -67,13 +67,16 @@ func ClearHashTable(table *PVTable) {
 
 func InitHashTable(table *PVTable, MB int) {
 	HashSize := 0x100000 * MB
-	table.numEntries = HashSize / int(unsafe.Sizeof(PVTable{}))
+	// TODO: Run garbage collection after?.
+	table.numEntries = HashSize / int(unsafe.Sizeof(PVEntry{}))
+	table.pTable = make([]PVEntry, table.numEntries)
 	// Subtract 2 to be safe. Could be removed.
 	table.numEntries -= 2
+	assert(table.numEntries > 1)
+	assert(len(table.pTable) > 1)
 
-	table.pTable = nil
-	// TODO: Run garbage collection after?.
-	table.pTable = make([]PVEntry, table.numEntries)
+	// table.pTable = nil
+	// table.pTable = make([]PVEntry, table.numEntries)
 
 	ClearHashTable(table)
 	fmt.Printf("HashTable init complete with %d entries\n", table.numEntries)

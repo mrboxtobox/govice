@@ -50,23 +50,23 @@ func CheckUp(info *SearchInfo) {
 	//  ReadInput(info);
 }
 
-//  func PickNextMove(moveNum int, list *MoveList) {
-// 	 Move temp;
-// 	 int index := 0;
-// 	 int bestScore := 0;
-// 	 int bestNum := moveNum;
+// Makes the best scoring move the next move.
+// Previously, this was computed for all moves.
+func PickNextMove(moveNum int, list *MoveList) {
+	bestScore := 0
+	bestNum := moveNum
 
-// 	 for index := moveNum; index < list.Count; index++ {
-// 		 if list.Moves[index].score > bestScore {
-// 			 bestScore := list.Moves[index].score;
-// 			 bestNum := index;
-// 		 }
-// 	 }
+	for index := moveNum; index < list.Count; index++ {
+		if list.Moves[index].score > bestScore {
+			bestScore = list.Moves[index].score
+			bestNum = index
+		}
+	}
 
-// 	 temp := list.Moves[moveNum];
-// 	 list.Moves[moveNum] := list.Moves[bestNum];
-// 	 list.Moves[bestNum] := temp;
-//  }
+	temp := list.Moves[moveNum]
+	list.Moves[moveNum] = list.Moves[bestNum]
+	list.Moves[bestNum] = temp
+}
 
 func IsRepetition(pos *Board) bool {
 	// Time since the 50-move rule was last reset. When it's reset, we can
@@ -255,7 +255,7 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 	}
 
 	for MoveNum := 0; MoveNum < list.Count; MoveNum++ {
-		// PickNextMove(MoveNum, list)
+		PickNextMove(MoveNum, list)
 
 		if !MakeMove(pos, list.Moves[MoveNum].Move) {
 			continue
@@ -279,7 +279,10 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 					}
 					info.fh++
 
+					// Caused a capture but increased beta?
+					// Beta cutoffs still important since they reduce the tree.
 					if list.Moves[MoveNum].Move&MFLAGCAP == 0 {
+						// Shuffle down.
 						pos.searchKillers[1][pos.ply] = pos.searchKillers[0][pos.ply]
 						pos.searchKillers[0][pos.ply] = list.Moves[MoveNum].Move
 					}

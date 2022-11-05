@@ -23,7 +23,12 @@ func main() {
 	rand.Seed(time.Now().Unix())
 	board.Init()
 
-	b := &board.Board{}
+	b := &board.Board{
+		HashTable: &board.PVTable{},
+	}
+	// TODO: Free memory.
+	board.InitHashTable(b.HashTable, 10)
+
 	// board.PerftMain()
 	// fen := "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N w - - 0 1"
 	// fen := "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
@@ -42,7 +47,7 @@ func main() {
 		txt := scanner.Text()
 
 		info := board.SearchInfo{
-			Depth: 4,
+			Depth: 5,
 		}
 		board.SearchPosition(b, &info)
 		if len(txt) == 0 {

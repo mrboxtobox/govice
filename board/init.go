@@ -81,6 +81,7 @@ func Init() {
 	InitBitMasks()
 	InitHashKeys()
 	InitFilesRankBoard()
+	InitMvvLva()
 }
 
 func InitSquare120ToSquare64() {
