@@ -1,7 +1,10 @@
 package board
 
 import (
+	"bufio"
 	"fmt"
+	"log"
+	"os"
 	"time"
 )
 
@@ -41,13 +44,43 @@ type SearchInfo struct {
 	fhf float32
 }
 
+func InputWaiting(info *SearchInfo) bool {
+	reader := bufio.NewReader(os.Stdin)
+	b, err := reader.Peek(16)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("after peak")
+
+	// Read if data exists.
+	if len(string(b)) > 0 {
+		text, _ := reader.ReadString('\n')
+		if text == "quit" {
+			info.quit = true
+		}
+		return true
+	}
+	// Read the input.
+	return false
+}
+
+// TODO: This could be solved by channels.
+// If the GUI receives any input, assume it's being interrupted to stop.
+func ReadInput(info *SearchInfo) {
+	// if InputWaiting(info) {
+	// 	fmt.Println("input waiting")
+
+	// 	info.stopped = true
+	// }
+}
+
 func CheckUp(info *SearchInfo) {
 	if info.timeset && time.Now().After(info.stoptime) {
 		// fmt.Println("Stopping time")
 		info.stopped = true
 	}
 
-	//  ReadInput(info);
+	ReadInput(info)
 }
 
 // Makes the best scoring move the next move.
@@ -100,7 +133,6 @@ func ClearForSearch(pos *Board, info *SearchInfo) {
 	ClearHashTable(pos.HashTable)
 	pos.ply = 0
 
-	info.starttime = time.Now()
 	info.stopped = false
 	info.nodes = 0
 	info.fh = 0
@@ -210,6 +242,7 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 
 	info.nodes++
 
+	// Make at least 1 move.
 	if (IsRepetition(pos) || (pos.fiftyMove >= 100)) && (pos.ply > 0) {
 		// Return draw estimate count.
 		// fmt.Println("Is repetition")
@@ -222,9 +255,13 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 	}
 
 	InCheck := SqAttacked(*pos, pos.KingSq[pos.Side], pos.Side^1)
-	// if InCheck == true {
-	// 	depth++
-	// }
+
+	// Add more depth when we're in check to allow us search deeper.
+	// Depth extension to get outselves out of check. Otherwise, quiesence might
+	// end at an opponents sacrifice when, maybe there's checkmate later on.
+	if InCheck == true {
+		depth++
+	}
 
 	// if ProbePvTable(pos, &PvMove, &Score, alpha, beta, depth) {
 	// 	pos.HashTable.cut++
@@ -370,7 +407,7 @@ func SearchPosition(pos *Board, info *SearchInfo) {
 				fmt.Printf("\n")
 			}
 			fmt.Printf("\n")
-			fmt.Printf("Ordering:%.2f\n", (info.fhf / info.fh))
+			// fmt.Printf("Ordering:%.2f\n", (info.fhf / info.fh))
 		}
 	}
 

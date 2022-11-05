@@ -81,6 +81,7 @@ func Init() {
 	InitBitMasks()
 	InitHashKeys()
 	InitFilesRankBoard()
+	InitEvalMasks()
 	InitMvvLva()
 }
 
@@ -101,5 +102,92 @@ func InitSquare120ToSquare64() {
 			Square120ToSquare64[sq] = sq64
 			sq64++
 		}
+	}
+}
+
+func InitEvalMasks() {
+	var sq, tsq int
+
+	for sq = 0; sq < 8; sq++ {
+		FileBBMask[sq] = 0
+		RankBBMask[sq] = 0
+	}
+
+	// Create the mask for getting File A, B, C.
+	// Just a line of 1s
+	for r := Rank8; r >= Rank1; r-- {
+		for f := FileA; f <= FileH; f++ {
+			sq = int(r)*8 + int(f)
+			FileBBMask[f] |= (1 << sq)
+			RankBBMask[r] |= (1 << sq)
+		}
+	}
+
+	for sq = 0; sq < 64; sq++ {
+		IsolatedMask[sq] = 0
+		BlackPassedMask[sq] = 0
+		WhitePassedMask[sq] = 0
+	}
+
+	for sq = 0; sq < 64; sq++ {
+		tsq = sq + 8
+
+		for tsq < 64 {
+			WhitePassedMask[sq] |= (1 << tsq)
+			tsq += 8
+		}
+
+		tsq = sq - 8
+		for tsq >= 0 {
+			BlackPassedMask[sq] |= (1 << tsq)
+			tsq -= 8
+		}
+
+		if FilesBrd[SQ120(int8(sq))] > int(FileA) {
+			// Set to the right.
+			IsolatedMask[sq] |= FileBBMask[FilesBrd[SQ120(int8(sq))]-1]
+
+			// Go left
+			tsq = sq + 7
+			for tsq < 64 {
+				WhitePassedMask[sq] |= (1 << tsq)
+				tsq += 8
+			}
+
+			// Go left
+			tsq = sq - 9
+			for tsq >= 0 {
+				BlackPassedMask[sq] |= (1 << tsq)
+				tsq -= 8
+			}
+		}
+
+		// Set to the left.
+		if FilesBrd[SQ120(int8(sq))] < int(FileH) {
+			IsolatedMask[sq] |= FileBBMask[FilesBrd[SQ120(int8(sq))]+1]
+
+			// Go right
+			tsq = sq + 9
+			for tsq < 64 {
+				WhitePassedMask[sq] |= (1 << tsq)
+				tsq += 8
+			}
+
+			// Go left
+			tsq = sq - 7
+			for tsq >= 0 {
+				BlackPassedMask[sq] |= (1 << tsq)
+				tsq -= 8
+			}
+		}
+	}
+
+	for sq := 0; sq < 64; sq++ {
+		println(sq)
+		PrintBitBoard(IsolatedMask[sq])
+		// PrintBitBoard(BlackPassedMask[sq])
+		println("\n\n")
+		// PrintBitBoard(FileBBMask[sq])
+		// PrintBitBoard(RankBBMask[sq])
 	}
 }

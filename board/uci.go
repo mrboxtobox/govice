@@ -1,378 +1,209 @@
 package board
 
-// func ParseGo(line string, info *SearchInfo, pos *Board) {
-// 	 depth := -1
-// 	 movestogo := 30
-// 	 movetime := -1
-// 	 time := -1
-// 	 inc := 0
-// 	 info.timeset = false
+import (
+	"bufio"
+	"fmt"
+	"log"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+)
 
-// 	//  if((ptr := strstr(line,"INF")));
+var debug = false
 
-// 	//  if((ptr := strstr(line,"binc")) && pos.side == BLACK)
-// 	// 	 inc := atoi(ptr + 5);
-// 	//  if((ptr := strstr(line,"winc")) && pos.side == WHITE)
-// 	// 	 inc := atoi(ptr + 5);
-// 	//  if((ptr := strstr(line,"wtime")) && pos.side == WHITE)
-// 	// 	 time := atoi(ptr + 6);
-// 	//  if((ptr := strstr(line,"btime")) && pos.side == BLACK)
-// 	// 	 time := atoi(ptr + 6);
-// 	//  if((ptr := strstr(line,"movestogo")))
-// 	// 	 movestogo := atoi(ptr + 10);
-// 	//  if((ptr := strstr(line,"movetime")))
-// 	// 	 movetime := atoi(ptr + 9);
+const MAX_HASH = 100
+const DEFAULT_HASH = 64
 
-// 	//  if((ptr := strstr(line,"depth")))
-// 	// 	 depth := atoi(ptr + 6);
+// Iterates until we get a space.
+func GetWord(line string) string {
+	var res string
+	var idx int
+	if len(line) == 0 {
+		return res
+	}
 
-// 	//  if(movetime != -1) {
-// 	// 	 time := movetime;
-// 	// 	 movestogo := 1;
-// 	//  }
+	for idx < len(line) && line[idx] != ' ' {
+		res = res + string(line[idx])
+		idx++
+	}
+	return res
+}
 
-// 	//  info.starttime := GetTimeMs();
-// 	//  info.depth := depth;
+// go depth 6 wtime 1800 btime 1000 binc 1000 winc 1000 movetim 1000 movestogo
+func ParseGo(line string, info *SearchInfo, pos *Board) {
+	depth := -1
+	movestogo := 30
+	movetime := -1
+	sideTimed := -1
+	inc := 0
+	info.timeset = false
+	sideTimed = -1
+	var err error
+	// Get values after each item.
+	// go wtime 180000 btime 180000
+	// fmt.Printf("go2: %q", line)
+	if idx := strings.Index(line, "btime"); idx != -1 && pos.Side == WHITE {
+		val := GetWord(line[idx+6:])
+		if sideTimed, err = strconv.Atoi(val); err != nil {
+			log.Fatal(err)
+		}
+	}
 
-// 	//  if(time != -1) {
-// 	// 	 info.timeset := TRUE;
-// 	// 	 time /= movestogo;
-// 	// 	 time -= 50;
-// 	// 	 info.stoptime := info.starttime + time + inc;
-// 	//  }
+	if idx := strings.Index(line, "btime"); idx != -1 && pos.Side == BLACK {
+		val := GetWord(line[idx+6:])
+		if sideTimed, err = strconv.Atoi(val); err != nil {
+			log.Fatal(err)
+		}
+	}
 
-// 	//  if(depth == -1)
-// 	// 	 info.depth := MAXDEPTH;
+	if idx := strings.Index(line, "winc"); idx != -1 && pos.Side == WHITE {
+		val := GetWord(line[idx+5:])
+		if inc, err = strconv.Atoi(GetWord(val)); err != nil {
+			log.Fatal(err)
+		}
+	}
 
-// 	//  printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
-// 	// 	 time, info.starttime, info.stoptime, info.depth, info.timeset);
-// 	//  SearchPosition(pos, info);
-//  }
+	if idx := strings.Index(line, "binc"); idx != -1 && pos.Side == BLACK {
+		val := GetWord(line[idx+5:])
+		if inc, err = strconv.Atoi(val); err != nil {
+			log.Fatal(err)
+		}
+	}
 
-// func Uci_Loop(pos *Board, info *SearchInfo) {
-// 	 char line[INPUTBUFFER]
-// 	  *ptrTrue := NULL
-// 	 MB := 64;
+	if idx := strings.Index(line, "movestogo"); idx != -1 {
+		val := GetWord(line[idx+10:])
+		if movestogo, err = strconv.Atoi(val); err != nil {
+			log.Fatal(err)
+		}
+	}
 
-// 	 info.GAME_MODE = UCIMODE;
-// 	 info.quit = false;
+	if idx := strings.Index(line, "movetime"); idx != -1 {
+		val := GetWord(line[idx+9:])
+		if movetime, err = strconv.Atoi(val); err != nil {
+			log.Fatal(err)
+		}
+	}
 
-// 	 setbuf(stdin, NULL);
-// 	 setbuf(stdout, NULL);
-// 	 printf("id name %s\n",NAME);
-// 	 printf("id author Bluefever\n");
-// 	 printf("option name Hash type spin default 64 min 4 max %d\n", MAX_HASH);
-// 	 printf("option name Book type check default true\n");
-// 	 printf("uciok\n");
+	if idx := strings.Index(line, "depth"); idx != -1 {
+		val := GetWord(line[idx+6:])
+		if depth, err = strconv.Atoi(val); err != nil {
+			log.Fatal(err)
+		}
+	}
 
-// 	 while (TRUE) {
-// 		 memset(&line[0], 0, sizeof(line));
-// 		 fflush(stdout);
-// 		 if (!fgets(line, INPUTBUFFER, stdin))
-// 			 continue;
+	if movetime != -1 {
+		sideTimed = movetime
+		movestogo = 1
+	}
 
-// 		 if (line[0] == '\n')
-// 			 continue;
+	info.starttime = time.Now()
+	info.Depth = depth
 
-// 		 if (!strncmp(line, "isready", 7)) {
-// 			 printf("readyok\n");
-// 			 continue;
-// 		 } else if (!strncmp(line, "position", 8)) {
-// 			 ParsePosition(line, pos);
-// 		 } else if (!strncmp(line, "ucinewgame", 10)) {
-// 			 ParsePosition("position startpos\n", pos);
-// 		 } else if (!strncmp(line, "go", 2)) {
-// 			 ParseGo(line, info, pos);
-// 		 } else if (!strncmp(line, "quit", 4)) {
-// 			 info.quit := TRUE;
-// 			 break;
-// 		 } else if (!strncmp(line, "uci", 3)) {
-// 			 printf("id name %s\n", NAME);
-// 			 printf("id author Bluefever\n");
-// 			 printf("uciok\n");
-// 		 } else if(!strncmp(line, "setoption name Hash value ", 26)) {
-// 			 sscanf(line, "%*s %*s %*s %*s %d", &MB);
-// 			 if(MB < 4) MB := 4;
-// 			 if(MB > MAX_HASH) MB := MAX_HASH;
-// 			 printf("Set Hash to %d MB\n", MB);
-// 			 InitHashTable(pos.HashTable, MB);
-// 		 } else if(!strncmp(line, "setoption name Book value ", 26)) {
-// 			 ptrTrue := strstr(line, "true");
-// 			 if(ptrTrue != NULL) {
-// 				 EngineOptions.UseBook := TRUE;
-// 			 } else {
-// 				 EngineOptions.UseBook := false;
-// 			 }
-// 		 }
-// 		 if(info.quit) break;
-// 	 }
-//  }
+	if sideTimed != -1 {
+		info.timeset = true
+		sideTimed /= movestogo
+		sideTimed -= 50 // Buffer
+		info.stoptime = info.starttime.Add(time.Duration(sideTimed+inc) * time.Millisecond)
+	}
 
-// type UCI struct {
-// 	engine *engine.Engine
-// 	game   *chess.Game
-// 	debug  bool
+	if depth == -1 {
+		info.Depth = MaxDepth
+	}
 
-// 	// Callback to send signal to child functions and cancel execution.
-// 	cancel context.CancelFunc
-// }
+	fmt.Printf("time:%d depth:%d timeset:%v\n", sideTimed, info.Depth, info.timeset)
+	SearchPosition(pos, info)
+}
 
-// // Reads UCI commands from stdin and outputs to stdout.
-// func (uci *UCI) Loop() {
-// 	uci.engine = engine.New()
-// 	scanner := bufio.NewScanner(os.Stdin)
-// 	fmt.Printf("id name %s\n", NAME)
-// 	fmt.Printf("id author Bluefever\n")
-// 	fmt.Printf("option name Hash type spin default 64 min 4 max %d\n", MAX_HASH)
-// 	fmt.Printf("option name Book type check default true\n")
-// 	fmt.Printf("uciok\n")
-// 	fmt.Printf("option name Hash type spin default 64 min 4 max %d\n", MAX_HASH)
-// 	fmt.Printf("option name Book type check default true\n")
+// Reads UCI commands from stdin and outputs to stdout.
+func UCILoop() {
+	pos := &Board{
+		HashTable: &PVTable{},
+	}
+	info := &SearchInfo{
+		GAME_MODE: UCIMODE,
+	}
 
-// 	for scanner.Scan() {
-// 		uci.printDebug(fmt.Sprintf("received %q", scanner.Text()))
+	// 	= New()
+	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Println("id name achebe")
+	fmt.Println("id author mrboxtobox")
+	fmt.Printf("option name Hash type spin default 64 min 4 max %d\n", MAX_HASH)
+	fmt.Println("option name Book type check default true")
+	fmt.Println("uciok")
 
-// 		line := strings.TrimSpace(scanner.Text())
-// 		if len(line) == 0 {
-// 			continue
-// 		}
+	InitHashTable(pos.HashTable, 64)
 
-// 		if line == "quit" {
-// 			return
-// 		}
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if len(line) == 0 {
+			continue
+		}
 
-// 		if err := uci.handleCommand(line); err != nil {
-// 			logger.Printf("uci.handleCommand(%q) error: %v", line, err)
-// 		}
-// 	}
+		if strings.HasPrefix(line, "isready") {
+			fmt.Println("readyok")
+			continue
+		} else if strings.HasPrefix(line, "position") {
+			ParsePosition(line, pos)
+		} else if strings.HasPrefix(line, "ucinewgame") {
+			ParsePosition("position startpos", pos)
+		} else if strings.HasPrefix(line, "go") {
+			// fmt.Println("ggo: %v", line)
+			ParseGo(line, info, pos)
+		} else if strings.HasPrefix(line, "uci") {
+			reply("id name achebe")
+			reply("id author mrboxtobox")
+			reply("uciok")
+		} else if strings.HasPrefix(line, "quit") {
+			info.quit = true
+			break
+		}
+		if info.quit {
+			break
+		}
 
-// 	if scanner.Err() != nil {
-// 		logger.Printf("scanner.Scan() error: %v", scanner.Err())
-// 	}
-// }
+		if scanner.Err() != nil {
+			panic("bad scanner")
+		}
+	}
+}
 
-// func (uci *UCI) handleCommand(line string) error {
-// 	fields := strings.Fields(line)
-// 	cmd, params := fields[0], fields[1:]
+const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
-// 	if cmd == "uci" {
-// 		reply("id name ggchess")
-// 		reply("id author mrboxtobox")
-// 		reply("uciok")
-// 	} else if cmd == "isready" {
-// 		reply("readyok")
-// 	} else if cmd == "setoption" {
-// 		uci.handleOption(params)
-// 	} else if cmd == "ucinewgame" {
-// 		uci.handleNewGame()
-// 	} else if cmd == "position" {
-// 		uci.handlePosition(params)
-// 	} else if cmd == "go" {
-// 		uci.handleGo(params)
-// 	} else if cmd == "stop" {
-// 		uci.handleStop()
-// 	} else if cmd == "ponderhit" {
-// 		uci.handlePonderHit()
-// 	} else if cmd == "debug" {
-// 		uci.handleDebug(params)
-// 	} else {
-// 		logger.Printf("cannot parse command; cmd: %q, params: %v", cmd, params)
-// 	}
+// position fen rnbqkb1r/pppp1ppp/8/4P3/6n1/7P/PPPNPPP1/R1BQKBNR b KQkq - 0 1
+func ParsePosition(line string, pos *Board) {
+	startIndex := 9
+	line = line[startIndex:]
+	if strings.HasPrefix(line, "startpos") {
+		ParseFEN(pos, START_FEN)
+	} else {
+		idx := strings.Index(line, "fen")
+		if idx == -1 {
+			ParseFEN(pos, START_FEN)
+		} else {
+			line = line[idx+4:] // For the "fen "
+			ParseFEN(pos, line)
+		}
+	}
+	idx := strings.Index(line, "moves")
+	// fmt.Printf("%q", line)
+	if idx != -1 {
+		line = line[idx+6:]
+		fmt.Printf("%q\n", line)
+		moves := strings.Fields(line)
+		for _, moveStr := range moves {
+			move := ParseMove(moveStr, pos)
+			if move == NOMOVE {
+				fmt.Println("Cannot parse move")
+				break
+			}
+			MakeMove(pos, move)
+			pos.ply = 0
+		}
+	}
+	PrintBoard(*pos)
+}
 
-// 	return nil
-// }
-
-// func (uci *UCI) handleOption(params []string) {
-// 	// TODO: Implement this.
-// 	uci.engine.SetOption(params)
-// }
-
-// func (uci *UCI) handleNewGame() {
-// 	uci.game = chess.NewGame(un)
-// }
-
-// // The subcommands will either be 'startpos' or 'fen'. We only need to configure
-// // the engine for the 'fen' case.
-// func (uci *UCI) handlePosition(params []string) {
-// 	subcommand := params[0]
-
-// 	idx := find(params, "moves")
-// 	if subcommand == "startpos" {
-// 		uci.game = chess.NewGame(un)
-// 	} else if subcommand == "fen" {
-// 		var err error
-// 		var fen func(*chess.Game)
-// 		if idx == -1 {
-// 			str := strings.Join(params[1:], " ")
-// 			if fen, err = chess.FEN(str); err != nil {
-// 				logger.Fatal(err)
-// 			}
-// 		} else {
-// 			str := strings.Join(params[1:idx], " ")
-// 			if fen, err = chess.FEN(str); err != nil {
-// 				logger.Fatal(err)
-// 			}
-// 		}
-
-// 		uci.game = chess.NewGame(un, fen)
-// 	} else {
-// 		logger.Fatalf("unable to parse position params %v", params)
-// 	}
-
-// 	// Apply the subsequent moves if provided.
-// 	if idx == -1 {
-// 		return
-// 	}
-// 	for _, m := range params[idx+1:] {
-// 		if err := uci.game.MoveStr(m); err != nil {
-// 			logger.Fatalf("game.MoveStr(%v) error: %v", m, err)
-// 		}
-// 	}
-// }
-
-// func (uci *UCI) handleGo(params []string) {
-// 	sp := &engine.SearchOptions{
-// 		Game:       uci.game.Clone(),
-// 		Encoder:    chess.UCINotation{},
-// 		Limits:     parseLimits(params),
-// 		OnProgress: replyInfo,
-// 	}
-
-// 	ctx, cancel := context.WithCancel(context.Background())
-// 	uci.cancel = cancel
-
-// 	// Run search in a separate goroutine.
-// 	// TODO: Figure out if this otherwise blocks IO.
-// 	go func() {
-// 		defer uci.cancel()
-// 		si := uci.engine.Search(ctx, sp)
-
-// 		if len(si.MainLine) > 1 {
-// 			reply(fmt.Sprintf("bestmove %v ponder %v", si.MainLine[0], si.MainLine[1]))
-// 		} else if len(si.MainLine) > 0 {
-// 			reply(fmt.Sprintf("bestmove %v", si.MainLine[0]))
-// 		} else {
-// 			logger.Printf("Could not find mainline")
-// 			reply("bestmove 0000")
-// 		}
-// 	}()
-// }
-
-// func (uci *UCI) handleStop() {
-// 	if uci.cancel != nil {
-// 		uci.cancel()
-// 	}
-// }
-
-// func (uci *UCI) handlePonderHit() {
-// 	// TODO: Set this at the UCI level.
-// 	uci.engine.StopPondering()
-// }
-
-// func (uci *UCI) handleDebug(params []string) {
-// 	if params[0] == "on" {
-// 		uci.debug = true
-// 	} else if params[0] == "off" {
-// 		uci.debug = false
-// 	}
-// }
-
-// func (uci *UCI) printDebug(str string) {
-// 	if uci.debug {
-// 		reply(fmt.Sprintf("info string %v\n", str))
-// 	}
-// }
-
-// func replyInfo(si *engine.SearchInfo) {
-// 	sb := &strings.Builder{}
-// 	fmt.Fprintf(sb, "info depth %d", si.Depth)
-// 	if si.MateIn != 0 {
-// 		fmt.Fprintf(sb, " score mate %d", si.MateIn)
-// 	} else {
-// 		fmt.Fprintf(sb, " score cp %d", si.CentipawnScore)
-// 	}
-
-// 	t := si.Duration.Milliseconds()
-// 	nps := si.Nodes / int(si.Duration.Seconds()+1)
-// 	fmt.Fprintf(sb, " nodes %d time %d nps %d", si.Nodes, t, nps)
-
-// 	if len(si.MainLine) > 0 {
-// 		pv := strings.Join(si.MainLine, " ")
-// 		fmt.Fprintf(sb, " pv %v", pv)
-// 	}
-
-// 	reply(sb.String())
-// }
-
-// func parseLimits(params []string) *engine.SearchLimits {
-// 	limits := &engine.SearchLimits{}
-// 	for i := 0; i < len(params); i++ {
-// 		switch params[i] {
-// 		case "searchmoves":
-// 			var moves []string
-// 			i++
-// 			for ; i < len(params); i++ {
-// 				// Keep searching until we find another token.
-// 				if find(goParams, params[i]) != -1 {
-// 					break
-// 				}
-// 				moves = append(moves, params[i])
-// 			}
-// 			limits.SearchMoves = moves
-// 		case "ponder":
-// 			limits.Ponder = true
-// 		case "wtime":
-// 			i++
-// 			limits.WhiteTimeMs = parseInt(params[i])
-// 		case "btime":
-// 			i++
-// 			limits.BlackTimeMs = parseInt(params[i])
-// 		case "winc":
-// 			i++
-// 			limits.WhiteIncrementMs = parseInt(params[i])
-// 		case "binc":
-// 			i++
-// 			limits.BlackIncrementMs = parseInt(params[i])
-// 		case "movestogo":
-// 			i++
-// 			limits.MovesToGo = parseInt(params[i])
-// 		case "depth":
-// 			i++
-// 			limits.Depth = parseInt(params[i])
-// 		case "nodes":
-// 			i++
-// 			limits.Nodes = parseInt(params[i])
-// 		case "mate":
-// 			i++
-// 			limits.MateIn = parseInt(params[i])
-// 		case "movetime":
-// 			i++
-// 			limits.MoveTimeMs = parseInt(params[i])
-// 		case "infinite":
-// 			limits.Infinite = true
-// 		}
-// 	}
-// 	return limits
-// }
-
-// func parseInt(val string) int {
-// 	res, err := strconv.Atoi(val)
-// 	if err != nil {
-// 		logger.Fatalf("strconv.Atoi(%v) error: %v", val, err)
-// 		return -1
-// 	}
-// 	return res
-// }
-
-// func find(list []string, s string) int {
-// 	for i, p := range list {
-// 		if strings.EqualFold(p, s) {
-// 			return i
-// 		}
-// 	}
-// 	return -1
-// }
-
-// func reply(msg string) {
-// 	fmt.Println(msg)
-// }
+func reply(msg string) {
+	fmt.Println(msg)
+}

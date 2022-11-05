@@ -91,6 +91,59 @@ var MIRROR64 = [64]int{
 	0, 1, 2, 3, 4, 5, 6, 7,
 }
 
+// Evaluate position from White POV == mirror position from Black POV.
+func MirrorBoard(pos *Board) {
+
+	tempPiecesArray := [64]Piece{}
+	tempSide := pos.Side ^ 1
+	SwapPiece := [13]Piece{EMPTY, BlackPawn, BlackKnight, BlackBishop, BlackRook, BlackQueen, BlackKing, WhitePawn, WhiteKnight, WhiteBishop, WhiteRook, WhiteQueen, WhiteKing}
+	var tempCastlePerm CastlingRights
+	tempEnPas := NO_SQ
+
+	// sq;
+	// tp;
+
+	if (pos.castlePerm & uint8(WKCA)) != 0 {
+		tempCastlePerm |= BKCA
+	}
+	if (pos.castlePerm & uint8(WQCA)) != 0 {
+		tempCastlePerm |= BQCA
+	}
+
+	if (pos.castlePerm & uint8(BKCA)) != 0 {
+		tempCastlePerm |= WKCA
+	}
+	if (pos.castlePerm & uint8(BQCA)) != 0 {
+		tempCastlePerm |= WQCA
+	}
+
+	if pos.enPas != NO_SQ {
+		v := int8(pos.enPas)
+		tempEnPas = Square(SQ120(int8(MIRROR64[int(SQ64(v))])))
+	}
+
+	for sq := 0; sq < 64; sq++ {
+		tempPiecesArray[sq] = pos.pieces[SQ120(int8(MIRROR64[int8(sq)]))]
+	}
+
+	ResetBoard(pos)
+
+	for sq := 0; sq < 64; sq++ {
+		tp := SwapPiece[tempPiecesArray[sq]]
+		pos.pieces[SQ120(int8(sq))] = tp
+	}
+
+	pos.Side = tempSide
+	pos.castlePerm = uint8(tempCastlePerm)
+	pos.enPas = tempEnPas
+
+	pos.posKey = GeneratePositionKey(*pos)
+
+	UpdateListsMaterial(pos)
+
+	CheckBoard(pos)
+}
+
 func MaterialDraw(pos *Board) bool {
 	if pos.pceNum[WhiteRook] == 0 && pos.pceNum[BlackRook] == 0 && pos.pceNum[WhiteQueen] == 0 && pos.pceNum[BlackQueen] == 0 {
 		if pos.pceNum[BlackBishop] == 0 && pos.pceNum[WhiteBishop] == 0 {

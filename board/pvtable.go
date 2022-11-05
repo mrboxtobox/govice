@@ -1,7 +1,6 @@
 package board
 
 import (
-	"fmt"
 	"unsafe"
 )
 
@@ -79,7 +78,7 @@ func InitHashTable(table *PVTable, MB int) {
 	// table.pTable = make([]PVEntry, table.numEntries)
 
 	ClearHashTable(table)
-	fmt.Printf("HashTable init complete with %d entries\n", table.numEntries)
+	// fmt.Printf("HashTable init complete with %d entries\n", table.numEntries)
 }
 
 func StorePvMove(pos *Board, move /*,score, flags, depth*/ int) {

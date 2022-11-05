@@ -6,4 +6,7 @@ build:
 run:
 	go run achebe.go
 
+clean: ## Remove build related file
+	rm -fr ./bin
+
 # TODO: Add tasks for building releases and adding semantic versioning. 

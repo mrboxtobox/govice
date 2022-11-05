@@ -15,9 +15,12 @@ var PieceBishopQueen = [13]bool{false, false, false, true, false, true, false, f
 var PieceSlides = [13]bool{false, false, false, true, true, true, false, false, false, true, true, true, false}
 
 var IsolatedMask [64]uint64
+
+// Passed Pawn--no pawn is on the direct or adjacent file
 var WhitePassedMask [64]uint64
 var BlackPassedMask [64]uint64
-var FileBBMask [64]uint64
+var FileBBMask [8]uint64
+var RankBBMask [8]uint64
 
 // var IsolatedMask = [64]int{}
 
