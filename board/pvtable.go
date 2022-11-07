@@ -1,6 +1,7 @@
 package board
 
 import (
+	"fmt"
 	"unsafe"
 )
 
@@ -87,6 +88,7 @@ func InitHashTable(table *PVTable, MB int) {
 	HashSize := 0x100000 * MB
 	// TODO: Run garbage collection after?.
 	table.numEntries = HashSize / int(unsafe.Sizeof(PVEntry{}))
+	fmt.Printf("Hash table size: %d\n", table.numEntries)
 	table.pTable = make([]PVEntry, table.numEntries)
 	// Subtract 2 to be safe. Could be removed.
 	table.numEntries -= 2
