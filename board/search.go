@@ -196,7 +196,7 @@ func Quiescence(alpha, beta int, pos *Board, info *SearchInfo) int {
 			continue
 		}
 
-		fmt.Printf("q %s %d\n", PrMove(list.Moves[MoveNum].Move), EvalPosition(pos))
+		// fmt.Printf("q %s %d\n", PrMove(list.Moves[MoveNum].Move), EvalPosition(pos))
 
 		Legal++
 		Score := -Quiescence(-beta, -alpha, pos, info)
@@ -312,7 +312,7 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 			continue
 		}
 
-		fmt.Printf("a %s %d\n", PrMove(list.Moves[MoveNum].Move), EvalPosition(pos))
+		// fmt.Printf("a %s %d\n", PrMove(list.Moves[MoveNum].Move), EvalPosition(pos))
 
 		Legal++
 		Score = -AlphaBeta(-beta, -alpha, depth-1, pos, info, true)
@@ -326,9 +326,9 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 			BestScore = Score
 			BestMove = list.Moves[MoveNum].Move
 			if Score > alpha {
-				fmt.Printf("alpha cutoff a=%d, b=%d, s=%d, m=%s\n", alpha, beta, Score, PrMove(BestMove))
+				// fmt.Printf("alpha cutoff a=%d, b=%d, s=%d, m=%s\n", alpha, beta, Score, PrMove(BestMove))
 				if Score >= beta {
-					fmt.Printf("beta cutoff a=%d, b=%d, s=%d, m=%s\n", alpha, beta, Score, PrMove(BestMove))
+					// fmt.Printf("beta cutoff a=%d, b=%d, s=%d, m=%s\n", alpha, beta, Score, PrMove(BestMove))
 					if Legal == 1 {
 						info.fhf++
 					}
@@ -423,7 +423,7 @@ func SearchPosition(pos *Board, info *SearchInfo) {
 				fmt.Printf("\n")
 			}
 			fmt.Printf("\n")
-			fmt.Printf("Ordering:%.2f\n", (info.fhf / info.fh))
+			// fmt.Printf("Ordering:%.2f\n", (info.fhf / info.fh))
 		}
 	}
 

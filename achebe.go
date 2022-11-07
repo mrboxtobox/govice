@@ -34,7 +34,7 @@ func main() {
 	info := &board.SearchInfo{
 		GAME_MODE: board.UCIMODE,
 		StartTime: time.Now(),
-		Depth:     2,
+		Depth:     9,
 	}
 	board.SearchPosition(b, info)
 
