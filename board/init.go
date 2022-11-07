@@ -184,7 +184,7 @@ func InitEvalMasks() {
 
 	for sq := 0; sq < 64; sq++ {
 		println(sq)
-		PrintBitBoard(IsolatedMask[sq])
+		// PrintBitBoard(IsolatedMask[sq])
 		// PrintBitBoard(BlackPassedMask[sq])
 		println("\n\n")
 		// PrintBitBoard(FileBBMask[sq])
