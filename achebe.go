@@ -26,7 +26,7 @@ func main() {
 		HashTable: &board.PVTable{},
 	}
 	// TODO: Free memory.
-	board.InitHashTable(b.HashTable, 16)
+	board.InitHashTable(b.HashTable, 64)
 
 	// board.UCILoop()
 
