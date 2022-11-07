@@ -253,8 +253,9 @@ type Board struct {
 	// Piece List (as Map).
 	pieceList [13][10]int
 
+	PvArray [MaxDepth2]int
+
 	HashTable *PVTable
-	PvArray   [MaxDepth2]int
 
 	// History heuristic.
 	// Index by (piece type, board square)

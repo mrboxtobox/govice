@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -97,14 +98,14 @@ func ParseGo(line string, info *SearchInfo, pos *Board) {
 		movestogo = 1
 	}
 
-	info.starttime = time.Now()
+	info.StartTime = time.Now()
 	info.Depth = depth
 
 	if sideTimed != -1 {
 		info.timeset = true
 		sideTimed /= movestogo
 		sideTimed -= 50 // Buffer
-		info.stoptime = info.starttime.Add(time.Duration(sideTimed+inc) * time.Millisecond)
+		info.stoptime = info.StartTime.Add(time.Duration(sideTimed+inc) * time.Millisecond)
 	}
 
 	if depth == -1 {
@@ -157,6 +158,13 @@ func UCILoop() {
 		} else if strings.HasPrefix(line, "quit") {
 			info.quit = true
 			break
+		} else if strings.HasPrefix(line, "setoption name Hash value ") {
+			MB, err := strconv.Atoi((line[26:]))
+			if err != nil {
+				log.Fatal(err)
+			}
+			MB = int(math.Max(math.Min(float64(MB), 4), 2048))
+
 		}
 		if info.quit {
 			break

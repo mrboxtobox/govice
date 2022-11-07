@@ -101,9 +101,6 @@ func MirrorBoard(pos *Board) {
 	var tempCastlePerm CastlingRights
 	tempEnPas := NO_SQ
 
-	// sq;
-	// tp;
-
 	if (pos.castlePerm & uint8(WKCA)) != 0 {
 		tempCastlePerm |= BKCA
 	}
@@ -307,7 +304,7 @@ func EvalPosition(pos *Board) int {
 
 		if (pos.Pawns[BOTH] & FileBBMask[FilesBrd[sq]]) == 0 {
 			score -= QueenOpenFile
-		} else if (pos.Pawns[BLACK] & FileBBMask[FilesBrd[sq]]) != 0 {
+		} else if (pos.Pawns[BLACK] & FileBBMask[FilesBrd[sq]]) == 0 {
 			score -= QueenSemiOpenFile
 		}
 	}

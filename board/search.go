@@ -1,9 +1,13 @@
 package board
 
+// TODO: Still searching significantly more nodes.
+// r1b1kb1r/2pp1ppp/1np1q3/p3P3/2P5/1P6/PB1NQPPP/R3KB1R b KQkq - 0 1
+// D8: ~21M // 26 seconds
 import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"time"
 )
@@ -21,7 +25,7 @@ const (
 )
 
 type SearchInfo struct {
-	starttime time.Time
+	StartTime time.Time
 	stoptime  time.Time
 	Depth     int
 	depthset  int
@@ -36,6 +40,8 @@ type SearchInfo struct {
 
 	GAME_MODE     Mode
 	POST_THINKING bool
+
+	nullCut int
 
 	// Fail high: Look at move ordering.
 	fh float32
@@ -128,24 +134,22 @@ func ClearForSearch(pos *Board, info *SearchInfo) {
 		}
 	}
 
-	// TODO: Why do we clear at the beginning of search. Don't we use the PV Line
-	// later?
-	ClearHashTable(pos.HashTable)
+	// Don't Clear the has table; keep it for later.
+
+	pos.HashTable.overWrite = 0
+	pos.HashTable.hit = 0
+	pos.HashTable.cut = 0
+	pos.HashTable.nullCut = 0
 	pos.ply = 0
 
 	info.stopped = false
 	info.nodes = 0
 	info.fh = 0
 	info.fhf = 0
+	info.nullCut = 0
 }
 
 func Quiescence(alpha, beta int, pos *Board, info *SearchInfo) int {
-	// //  int MoveNum := 0;
-	// Legal := 0
-	// //  int Score;
-	// list := &MoveList{}
-	// //  MoveLIST list[1];
-
 	CheckBoard(pos)
 	assert(beta > alpha)
 
@@ -173,7 +177,7 @@ func Quiescence(alpha, beta int, pos *Board, info *SearchInfo) int {
 	if Score >= beta {
 		return beta
 	}
-
+	// https://github.com/ChrisWhittington/Chess-EPDs
 	if Score > alpha {
 		alpha = Score
 	}
@@ -191,6 +195,8 @@ func Quiescence(alpha, beta int, pos *Board, info *SearchInfo) int {
 		if !MakeMove(pos, list.Moves[MoveNum].Move) {
 			continue
 		}
+
+		fmt.Printf("q %s %d\n", PrMove(list.Moves[MoveNum].Move), EvalPosition(pos))
 
 		Legal++
 		Score := -Quiescence(-beta, -alpha, pos, info)
@@ -227,6 +233,7 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 	OldAlpha := alpha
 	BestMove := NOMOVE
 	BestScore := -INF
+	Score := -INF
 
 	CheckBoard(pos)
 	assert(beta > alpha)
@@ -263,29 +270,32 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 		depth++
 	}
 
-	// if ProbePvTable(pos, &PvMove, &Score, alpha, beta, depth) {
-	// 	pos.HashTable.cut++
-	// 	return Score
-	// }
+	// If we found a PVMove, just return that score.
+	if ProbePvTable(pos, &PvMove, &Score, alpha, beta, depth) {
+		pos.HashTable.cut++
+		return Score
+	}
 
-	// if DoNull && !InCheck && pos.ply && (pos.bigPce[pos.Side] > 0) && depth >= 4 {
-	// 	MakeNullMove(pos)
-	// 	Score := -AlphaBeta(-beta, -beta+1, depth-4, pos, info, false)
-	// 	TakeNullMove(pos)
-	// 	if info.stopped {
-	// 		return 0
-	// 	}
+	// Give opponent a free move (only once)
+	// Check for zuzgwang with the bigPce check.
+	if DoNull && !InCheck && (pos.ply > 0) && (pos.bigPieceCounts[pos.Side] > 0) && depth >= 4 {
+		MakeNullMove(pos)
+		Score := -AlphaBeta(-beta, -beta+1, depth-4, pos, info, false)
+		TakeNullMove(pos)
+		if info.stopped {
+			return 0
+		}
 
-	// 	if Score >= beta && math.Abs(Score) < ISMATE {
-	// 		info.nullCut++
-	// 		return beta
-	// 	}
-	// }
+		if Score >= beta && math.Abs(float64(Score)) < ISMATE {
+			info.nullCut++
+			return beta
+		}
+	}
 
 	list := &MoveList{}
 	GenerateAllMoves(pos, list)
 
-	Score := -INF
+	Score = -INF
 	if PvMove != NOMOVE {
 		for MoveNum := 0; MoveNum < list.Count; MoveNum++ {
 			if list.Moves[MoveNum].Move == PvMove {
@@ -302,6 +312,8 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 			continue
 		}
 
+		fmt.Printf("a %s %d\n", PrMove(list.Moves[MoveNum].Move), EvalPosition(pos))
+
 		Legal++
 		Score = -AlphaBeta(-beta, -alpha, depth-1, pos, info, true)
 		TakeMove(pos)
@@ -314,7 +326,9 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 			BestScore = Score
 			BestMove = list.Moves[MoveNum].Move
 			if Score > alpha {
+				fmt.Printf("alpha cutoff a=%d, b=%d, s=%d, m=%s\n", alpha, beta, Score, PrMove(BestMove))
 				if Score >= beta {
+					fmt.Printf("beta cutoff a=%d, b=%d, s=%d, m=%s\n", alpha, beta, Score, PrMove(BestMove))
 					if Legal == 1 {
 						info.fhf++
 					}
@@ -328,7 +342,7 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 						pos.searchKillers[0][pos.ply] = list.Moves[MoveNum].Move
 					}
 
-					StorePvMove(pos, BestMove /*, beta, HFBETA, depth*/)
+					StorePvMove(pos, BestMove, beta, HFBETA, depth)
 					return beta
 				}
 				alpha = Score
@@ -354,11 +368,13 @@ func AlphaBeta(alpha, beta, depth int, pos *Board, info *SearchInfo, DoNull bool
 
 	assert(alpha >= OldAlpha)
 
+	// We didn't beat beta but improved alpha.
 	// If we improved the best move, we can store the best move.
 	if alpha != OldAlpha {
-		StorePvMove(pos, BestMove /*, BestScore, HFEXACT, depth*/)
+		// We have an exact flag.
+		StorePvMove(pos, BestMove, BestScore, HFEXACT, depth)
 	} else {
-		// StorePvMove(pos, BestMove /*, alpha, HFALPHA, depth*/)
+		StorePvMove(pos, BestMove, alpha, HFALPHA, depth)
 	}
 
 	return alpha
@@ -389,13 +405,13 @@ func SearchPosition(pos *Board, info *SearchInfo) {
 
 			if info.GAME_MODE == UCIMODE {
 				fmt.Printf("info score cp %d depth %d nodes %d time %d ",
-					bestScore, currentDepth, info.nodes, time.Since(info.starttime).Milliseconds())
+					bestScore, currentDepth, info.nodes, time.Since(info.StartTime).Milliseconds())
 			} else if info.POST_THINKING {
 				fmt.Printf("score:%d depth:%d nodes:%d time:%d(ms) ",
-					bestScore, currentDepth, info.nodes, time.Since(info.starttime).Milliseconds())
+					bestScore, currentDepth, info.nodes, time.Since(info.StartTime).Milliseconds())
 			} else {
 				fmt.Printf("score:%d depth:%d nodes:%d time:%d(ms) ",
-					bestScore, currentDepth, info.nodes, time.Since(info.starttime).Milliseconds())
+					bestScore, currentDepth, info.nodes, time.Since(info.StartTime).Milliseconds())
 			}
 
 			if info.GAME_MODE == UCIMODE || info.POST_THINKING || true {
@@ -407,7 +423,7 @@ func SearchPosition(pos *Board, info *SearchInfo) {
 				fmt.Printf("\n")
 			}
 			fmt.Printf("\n")
-			// fmt.Printf("Ordering:%.2f\n", (info.fhf / info.fh))
+			fmt.Printf("Ordering:%.2f\n", (info.fhf / info.fh))
 		}
 	}
 

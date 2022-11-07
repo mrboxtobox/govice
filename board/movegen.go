@@ -53,7 +53,6 @@ func AddQuietMove(pos *Board, move int, list *MoveList) {
 		list.Moves[list.Count].score = pos.searchHistory[pos.pieces[FromSQ(move)]][ToSQ(move)]
 	}
 
-	list.Moves[list.Count].score = 0
 	list.Count++
 }
 
