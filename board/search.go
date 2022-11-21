@@ -56,7 +56,7 @@ func InputWaiting(info *SearchInfo) bool {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("after peak")
+	// fmt.Println("after peak")
 
 	// Read if data exists.
 	if len(string(b)) > 0 {
@@ -387,9 +387,9 @@ func SearchPosition(pos *Board, info *SearchInfo) {
 
 	ClearForSearch(pos, info)
 
-	//  if EngineOptions.UseBook {
-	// 	 bestMove := GetBookMove(pos);
-	//  }
+	if EngineOptions.UseBook {
+		bestMove = int(GetBookMove(pos))
+	}
 
 	if bestMove == NOMOVE {
 		for currentDepth := 1; currentDepth <= info.Depth; currentDepth++ {

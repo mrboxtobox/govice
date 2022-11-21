@@ -163,8 +163,15 @@ func UCILoop() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			MB = int(math.Max(math.Min(float64(MB), 4), 2048))
-
+			// TODO: Need to revisit this.
+			MB = int(math.Min(math.Max(float64(MB), 2048), 4))
+			InitHashTable(pos.HashTable, MB)
+		} else if strings.HasPrefix(line, "setoption name Book value ") {
+			if strings.Index(line, "true") == -1 {
+				EngineOptions.UseBook = true
+			} else {
+				EngineOptions.UseBook = false
+			}
 		}
 		if info.quit {
 			break
