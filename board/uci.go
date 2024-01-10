@@ -127,7 +127,7 @@ func UCILoop() {
 
 	// 	= New()
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Println("id name achebe")
+	fmt.Println("id name govice")
 	fmt.Println("id author mrboxtobox")
 	fmt.Printf("option name Hash type spin default 64 min 4 max %d\n", MAX_HASH)
 	fmt.Println("option name Book type check default true")
@@ -152,7 +152,7 @@ func UCILoop() {
 			// fmt.Println("ggo: %v", line)
 			ParseGo(line, info, pos)
 		} else if strings.HasPrefix(line, "uci") {
-			reply("id name achebe")
+			reply("id name govice")
 			reply("id author mrboxtobox")
 			reply("uciok")
 		} else if strings.HasPrefix(line, "quit") {

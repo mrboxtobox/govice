@@ -3,7 +3,7 @@
 
 ## Local Development
 
-Build from source. Binary will be written to `bin/achebe`.
+Build from source. Binary will be written to `bin/govice`.
 ```
 make build
 ```
@@ -15,7 +15,7 @@ make run
 
 ## Acknowledgements
 
-`achebe` exists thanks to the following:
+`govice` exists thanks to the following:
 
 Instructional material
 * [Chess Programming Wiki](https://www.chessprogramming.org/)

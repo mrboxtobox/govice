@@ -430,7 +430,7 @@ func SearchPosition(pos *Board, info *SearchInfo) {
 	if info.GAME_MODE == UCIMODE {
 		fmt.Printf("bestmove %s\n", PrMove(bestMove))
 	} else {
-		fmt.Printf("\n\n***!! Achebe makes move %s (%d) !!***\n\n", PrMove(bestMove), bestScore)
+		fmt.Printf("\n\n***!! govice makes move %s (%d) !!***\n\n", PrMove(bestMove), bestScore)
 		// MakeMove(pos, bestMove)
 		// PrintBoard(*pos)
 	}
