@@ -1,9 +1,7 @@
 # achebe: Go Chess Engine
 (Soon-to-be) UCI-compliant chess engine in Go.
 
-You can find related articles on my blog, [oluko.co](https://oluko.co).
-
- ## Local Development
+## Local Development
 
 Build from source. Binary will be written to `bin/achebe`.
 ```
