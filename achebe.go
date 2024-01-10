@@ -4,12 +4,12 @@ import (
 	"math/rand"
 	"time"
 
-	"achebe/board"
-	// . "achebe/board"
+	"govice/board"
+	// . "govice/board"
 )
 
 const (
-	Name         = "Achebe"
+	Name         = "govice"
 	DEFAULT_HASH = 64
 )
 
