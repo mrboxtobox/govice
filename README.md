@@ -1,4 +1,4 @@
-# achebe: Go Chess Engine
+# govice: Go Implementation of VICE (Video Instructional Chess Engine)
 (Soon-to-be) UCI-compliant chess engine in Go.
 
 ## Local Development
